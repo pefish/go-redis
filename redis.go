@@ -2,10 +2,10 @@ package p_redis
 
 import (
 	"fmt"
-	"gitee.com/pefish/p-go-application"
-	"gitee.com/pefish/p-go-error"
-	"gitee.com/pefish/p-go-logger"
 	"github.com/go-redis/redis"
+	"github.com/pefish/go-application"
+	"github.com/pefish/go-error"
+	"github.com/pefish/go-logger"
 	"time"
 )
 
