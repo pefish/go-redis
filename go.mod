@@ -7,5 +7,5 @@ require (
 	github.com/pefish/go-application v0.0.2
 	github.com/pefish/go-error v0.1.2
 	github.com/pefish/go-logger v0.0.2
-	github.com/pefish/go-reflect v0.0.1
+	github.com/pefish/go-reflect v0.0.2
 )

@@ -10,12 +10,14 @@ import (
 	"time"
 )
 
+// ----------------------------- RedisClass -----------------------------
+
 type RedisClass struct {
 	Db     *redis.Client
 	Set    *_SetClass
 	List   *_ListClass
 	String *_StringClass
-	Order  *_OrderClass
+	Order  *_OrderSetClass
 	Hash   *_HashClass
 }
 
@@ -85,7 +87,7 @@ func (this *RedisClass) Connect(host string, port uint64, password string, datab
 	this.Set = &_SetClass{this.Db}
 	this.List = &_ListClass{this.Db}
 	this.String = &_StringClass{this.Db}
-	this.Order = &_OrderClass{this.Db}
+	this.Order = &_OrderSetClass{this.Db}
 	this.Hash = &_HashClass{this.Db}
 }
 
@@ -93,11 +95,22 @@ func (this *RedisClass) Del(key string) {
 	if p_application.Application.Debug {
 		p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
 	}
-	_, err := this.Db.Del(key).Result()
-	if err != nil {
+	if err := this.Db.Del(key).Err(); err != nil {
 		p_error.ThrowInternalError(`redis del error`, err)
 	}
 }
+
+func (this *RedisClass) Expire(key string, expiration time.Duration) {
+	if p_application.Application.Debug {
+		p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
+	}
+	if err := this.Db.Expire(key, expiration).Err(); err != nil {
+		p_error.ThrowInternalError(`redis expire error`, err)
+	}
+}
+
+
+// ----------------------------- _SetClass -----------------------------
 
 type _SetClass struct {
 	Db *redis.Client
@@ -105,16 +118,22 @@ type _SetClass struct {
 
 func (this *_SetClass) Sadd(key string, value string) {
 	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis sadd. key: %s, val: %s`, key, value))
+		p_logger.Logger.Debug(fmt.Sprintf(`redis sadd. key: %s, value: %s`, key, value))
 	}
 	if err := this.Db.SAdd(key, value).Err(); err != nil {
 		p_error.ThrowInternalError(`redis sadd error`, err)
 	}
 }
 
+
+// ----------------------------- _ListClass -----------------------------
+
 type _ListClass struct {
 	Db *redis.Client
 }
+
+
+// ----------------------------- _StringClass -----------------------------
 
 type _StringClass struct {
 	Db *redis.Client
@@ -127,6 +146,20 @@ func (this *_StringClass) Set(key string, value string, expiration time.Duration
 	if err := this.Db.Set(key, value, expiration).Err(); err != nil {
 		p_error.ThrowInternalError(`redis set error`, err)
 	}
+}
+
+/**
+设置成功返回true
+ */
+func (this *_StringClass) SetNx(key string, value string, expiration time.Duration) bool {
+	if p_application.Application.Debug {
+		p_logger.Logger.Debug(fmt.Sprintf(`redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration))
+	}
+	result := this.Db.SetNX(key, value, expiration)
+	if err := result.Err(); err != nil {
+		p_error.ThrowInternalError(`redis set error`, err)
+	}
+	return result.Val()
 }
 
 func (this *_StringClass) Get(key string) *string {
@@ -143,25 +176,57 @@ func (this *_StringClass) Get(key string) *string {
 	return &result
 }
 
-type _OrderClass struct {
+
+// ----------------------------- _OrderSetClass -----------------------------
+
+type _OrderSetClass struct {
 	Db *redis.Client
 }
+
+
+// ----------------------------- _HashClass -----------------------------
 
 type _HashClass struct {
 	Db *redis.Client
 }
 
 func (this *_HashClass) Hmget(key string, field string) *string {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, val: %s`, key, field))
-	}
 	val, err := this.Db.HMGet(key, field).Result()
 	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil
+		}
 		p_error.ThrowInternalError(`redis hmget error`, err)
 	}
 	if len(val) == 0 || val[0] == nil {
 		return nil
 	}
 	result := val[0].(string)
+	if p_application.Application.Debug {
+		p_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s, val: %s`, key, field, result))
+	}
 	return &result
+}
+
+func (this *_HashClass) HGet(key, field string) *string {
+	result, err := this.Db.HGet(key, field).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil
+		}
+		p_error.ThrowInternalError(`redis hget error`, err)
+	}
+	if p_application.Application.Debug {
+		p_logger.Logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s, value: %s`, key, field, result))
+	}
+	return &result
+}
+
+func (this *_HashClass) HSet(key, field string, value interface{}) {
+	if p_application.Application.Debug {
+		p_logger.Logger.Debug(fmt.Sprintf(`redis hset. key: %s, field: %s, value: %s`, key, field, value))
+	}
+	if err := this.Db.HSet(key, field, value).Err(); err != nil {
+		p_error.ThrowInternalError(`redis hset error`, err)
+	}
 }
