@@ -18,22 +18,52 @@ type RedisClass struct {
 	Hash   *_HashClass
 }
 
+type Configuration struct {
+	Host     string
+	Port     *uint64
+	Db       *uint64
+	Password *string
+}
+
 func (this *RedisClass) Close() {
 	if this.Db != nil {
-		this.Db.Close()
+		err := this.Db.Close()
+		if err != nil {
+			p_logger.Logger.Error(err)
+		} else {
+			p_logger.Logger.Info(`redis close succeed.`)
+		}
 	}
 }
 
-func (this *RedisClass) Connect(host string, port int64, password string, database int64) {
+func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
+	var port uint64 = 6379
+	if configuration.Port != nil {
+		port = *configuration.Port
+	}
+	password := ``
+	if configuration.Password != nil {
+		password = *configuration.Password
+	}
+	var database uint64 = 0
+	if configuration.Db != nil {
+		database = *configuration.Db
+	}
+	this.Connect(configuration.Host, port, password, database)
+}
+
+func (this *RedisClass) Connect(host string, port uint64, password string, database uint64) {
+	address := fmt.Sprintf(`%s:%d`, host, port)
 	this.Db = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf(`%s:%d`, host, port),
+		Addr:     address,
 		Password: password,
 		DB:       int(database),
 	})
 	_, err := this.Db.Ping().Result()
 	if err != nil {
-		p_error.ThrowError(`redis connect error`, 0, err)
+		p_error.ThrowInternalError(`redis connect error`, err)
 	}
+	p_logger.Logger.Info(fmt.Sprintf(`redis connect succeed. url: %s`, address))
 
 	this.Set = &_SetClass{this.Db}
 	this.List = &_ListClass{this.Db}
@@ -48,7 +78,7 @@ func (this *RedisClass) Del(key string) {
 	}
 	_, err := this.Db.Del(key).Result()
 	if err != nil {
-		p_error.ThrowError(`redis del error`, 0, err)
+		p_error.ThrowInternalError(`redis del error`, err)
 	}
 }
 
@@ -61,7 +91,7 @@ func (this *_SetClass) Sadd(key string, value string) {
 		p_logger.Logger.Debug(fmt.Sprintf(`redis sadd. key: %s, val: %s`, key, value))
 	}
 	if err := this.Db.SAdd(key, value).Err(); err != nil {
-		p_error.ThrowError(`redis sadd error`, 0, err)
+		p_error.ThrowInternalError(`redis sadd error`, err)
 	}
 }
 
@@ -78,7 +108,7 @@ func (this *_StringClass) Set(key string, value string, expiration time.Duration
 		p_logger.Logger.Debug(fmt.Sprintf(`redis set. key: %s, val: %s, expiration: %v`, key, value, expiration))
 	}
 	if err := this.Db.Set(key, value, expiration).Err(); err != nil {
-		p_error.ThrowError(`redis set error`, 0, err)
+		p_error.ThrowInternalError(`redis set error`, err)
 	}
 }
 
@@ -88,7 +118,7 @@ func (this *_StringClass) Get(key string) *string {
 		if err.Error() == `redis: nil` {
 			return nil
 		}
-		p_error.ThrowError(`redis get error`, 0, err)
+		p_error.ThrowInternalError(`redis get error`, err)
 	}
 	if p_application.Application.Debug {
 		p_logger.Logger.Debug(fmt.Sprintf(`redis get. key: %s, value: %s`, key, result))
@@ -110,7 +140,7 @@ func (this *_HashClass) Hmget(key string, field string) *string {
 	}
 	val, err := this.Db.HMGet(key, field).Result()
 	if err != nil {
-		p_error.ThrowError(`redis hmget error`, 0, err)
+		p_error.ThrowInternalError(`redis hmget error`, err)
 	}
 	if len(val) == 0 || val[0] == nil {
 		return nil
