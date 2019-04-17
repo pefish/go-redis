@@ -37,6 +37,22 @@ func (this *RedisClass) Close() {
 	}
 }
 
+func (this *RedisClass) ConnectWithMap(map_ map[string]interface{}) {
+	var port uint64 = 6379
+	if map_[`port`] != nil {
+		port = p_reflect.Reflect.ToUint64(map_[`port`])
+	}
+	password := ``
+	if map_[`password`] != nil {
+		password = p_reflect.Reflect.ToString(map_[`password`])
+	}
+	var database uint64 = 0
+	if map_[`db`] != nil {
+		database = p_reflect.Reflect.ToUint64(map_[`db`])
+	}
+	this.Connect(map_[`host`].(string), port, password, database)
+}
+
 func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
 	var port uint64 = 6379
 	if configuration.Port != nil {
