@@ -6,6 +6,7 @@ import (
 	"github.com/pefish/go-application"
 	"github.com/pefish/go-error"
 	"github.com/pefish/go-logger"
+	"github.com/pefish/go-reflect"
 	"time"
 )
 
@@ -20,9 +21,9 @@ type RedisClass struct {
 
 type Configuration struct {
 	Host     string
-	Port     *uint64
-	Db       *uint64
-	Password *string
+	Port     interface{}
+	Db       interface{}
+	Password interface{}
 }
 
 func (this *RedisClass) Close() {
@@ -39,15 +40,15 @@ func (this *RedisClass) Close() {
 func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
 	var port uint64 = 6379
 	if configuration.Port != nil {
-		port = *configuration.Port
+		port = p_reflect.Reflect.ToUint64(configuration.Port)
 	}
 	password := ``
 	if configuration.Password != nil {
-		password = *configuration.Password
+		password = p_reflect.Reflect.ToString(configuration.Password)
 	}
 	var database uint64 = 0
 	if configuration.Db != nil {
-		database = *configuration.Db
+		database = p_reflect.Reflect.ToUint64(configuration.Db)
 	}
 	this.Connect(configuration.Host, port, password, database)
 }
