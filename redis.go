@@ -3,7 +3,6 @@ package p_redis
 import (
 	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/pefish/go-application"
 	"github.com/pefish/go-error"
 	"github.com/pefish/go-logger"
 	"github.com/pefish/go-reflect"
@@ -92,18 +91,14 @@ func (this *RedisClass) Connect(host string, port uint64, password string, datab
 }
 
 func (this *RedisClass) Del(key string) {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
 	if err := this.Db.Del(key).Err(); err != nil {
 		p_error.ThrowInternalError(`redis del error`, err)
 	}
 }
 
 func (this *RedisClass) Expire(key string, expiration time.Duration) {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
 	if err := this.Db.Expire(key, expiration).Err(); err != nil {
 		p_error.ThrowInternalError(`redis expire error`, err)
 	}
@@ -117,11 +112,35 @@ type _SetClass struct {
 }
 
 func (this *_SetClass) Sadd(key string, value string) {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis sadd. key: %s, value: %s`, key, value))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis sadd. key: %s, value: %s`, key, value))
 	if err := this.Db.SAdd(key, value).Err(); err != nil {
 		p_error.ThrowInternalError(`redis sadd error`, err)
+	}
+}
+
+func (this *_SetClass) Smembers(key string) []string {
+	p_logger.Logger.Debug(fmt.Sprintf(`redis smembers. key: %s`, key))
+	result, err := this.Db.SMembers(key).Result()
+	if err != nil {
+		p_error.ThrowInternalError(`redis smembers error`, err)
+	}
+	return result
+}
+
+func (this *_SetClass) SisMembers(key string, member string) bool {
+	p_logger.Logger.Debug(fmt.Sprintf(`redis ismember. key: %s, member: %s`, key, member))
+	result, err := this.Db.SIsMember(key, member).Result()
+	if err != nil {
+		p_error.ThrowInternalError(`redis ismember error`, err)
+	}
+	return result
+}
+
+func (this *_SetClass) Srem(key string, members ...interface{}) {
+	p_logger.Logger.Debug(fmt.Sprintf(`redis ismember. key: %s, members: %s`, key, members))
+	_, err := this.Db.SRem(key, members).Result()
+	if err != nil {
+		p_error.ThrowInternalError(`redis ismember error`, err)
 	}
 }
 
@@ -140,9 +159,7 @@ type _StringClass struct {
 }
 
 func (this *_StringClass) Set(key string, value string, expiration time.Duration) {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis set. key: %s, val: %s, expiration: %v`, key, value, expiration))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis set. key: %s, val: %s, expiration: %v`, key, value, expiration))
 	if err := this.Db.Set(key, value, expiration).Err(); err != nil {
 		p_error.ThrowInternalError(`redis set error`, err)
 	}
@@ -152,9 +169,7 @@ func (this *_StringClass) Set(key string, value string, expiration time.Duration
 设置成功返回true
  */
 func (this *_StringClass) SetNx(key string, value string, expiration time.Duration) bool {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration))
 	result := this.Db.SetNX(key, value, expiration)
 	if err := result.Err(); err != nil {
 		p_error.ThrowInternalError(`redis set error`, err)
@@ -170,9 +185,7 @@ func (this *_StringClass) Get(key string) *string {
 		}
 		p_error.ThrowInternalError(`redis get error`, err)
 	}
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis get. key: %s, value: %s`, key, result))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis get. key: %s, value: %s`, key, result))
 	return &result
 }
 
@@ -202,9 +215,7 @@ func (this *_HashClass) Hmget(key string, field string) *string {
 		return nil
 	}
 	result := val[0].(string)
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s, val: %s`, key, field, result))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s, val: %s`, key, field, result))
 	return &result
 }
 
@@ -216,16 +227,12 @@ func (this *_HashClass) HGet(key, field string) *string {
 		}
 		p_error.ThrowInternalError(`redis hget error`, err)
 	}
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s, value: %s`, key, field, result))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s, value: %s`, key, field, result))
 	return &result
 }
 
 func (this *_HashClass) HSet(key, field string, value interface{}) {
-	if p_application.Application.Debug {
-		p_logger.Logger.Debug(fmt.Sprintf(`redis hset. key: %s, field: %s, value: %s`, key, field, value))
-	}
+	p_logger.Logger.Debug(fmt.Sprintf(`redis hset. key: %s, field: %s, value: %s`, key, field, value))
 	if err := this.Db.HSet(key, field, value).Err(); err != nil {
 		p_error.ThrowInternalError(`redis hset error`, err)
 	}
