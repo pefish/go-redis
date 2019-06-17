@@ -127,7 +127,7 @@ func (this *_SetClass) Smembers(key string) []string {
 	return result
 }
 
-func (this *_SetClass) SisMembers(key string, member string) bool {
+func (this *_SetClass) SisMember(key string, member string) bool {
 	p_logger.Logger.Debug(fmt.Sprintf(`redis ismember. key: %s, member: %s`, key, member))
 	result, err := this.Db.SIsMember(key, member).Result()
 	if err != nil {
