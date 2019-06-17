@@ -137,10 +137,10 @@ func (this *_SetClass) SisMember(key string, member string) bool {
 }
 
 func (this *_SetClass) Srem(key string, members ...interface{}) {
-	p_logger.Logger.Debug(fmt.Sprintf(`redis ismember. key: %s, members: %s`, key, members))
-	_, err := this.Db.SRem(key, members).Result()
+	p_logger.Logger.Debug(fmt.Sprintf(`redis srem. key: %s, members: %s`, key, members))
+	_, err := this.Db.SRem(key, members...).Result()
 	if err != nil {
-		p_error.ThrowInternalError(`redis ismember error`, err)
+		p_error.ThrowInternalError(`redis srem error`, err)
 	}
 }
 

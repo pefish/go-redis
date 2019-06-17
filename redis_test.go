@@ -1,6 +1,7 @@
 package p_redis
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -40,4 +41,21 @@ func Test_StringClass_SetNx(t *testing.T) {
 		t.Error()
 	}
 	redisClient.Close()
+}
+
+func Test_SetClass_Sadd(t *testing.T) {
+	redisClient := RedisClass{}
+	redisClient.ConnectWithMap(map[string]interface{}{
+		`host`: `127.0.0.1`,
+	})
+	redisClient.Set.Sadd(`test`, `haha`)
+}
+
+func Test_SetClass_SisMember(t *testing.T) {
+	redisClient := RedisClass{}
+	redisClient.ConnectWithMap(map[string]interface{}{
+		`host`: `127.0.0.1`,
+	})
+	result := redisClient.Set.SisMember(`test`, `haha`)
+	fmt.Println(result)
 }
