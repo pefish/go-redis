@@ -1,9 +1,10 @@
-package p_redis
+package go_redis
 
 import (
 	"fmt"
 	"testing"
 	"time"
+	"github.com/google/uuid"
 )
 
 func TestRedisClass_ConnectWithConfiguration(t *testing.T) {
@@ -59,3 +60,20 @@ func Test_SetClass_SisMember(t *testing.T) {
 	result := redisClient.Set.SisMember(`test`, `haha`)
 	fmt.Println(result)
 }
+
+func TestRedisClass_GetLock(t *testing.T) {
+	redisClient := RedisClass{}
+	redisClient.ConnectWithMap(map[string]interface{}{
+		`host`: `127.0.0.1`,
+	})
+	key := `haha`
+	rid := uuid.New().String()
+	if !redisClient.GetLock(key, rid, 5 * time.Second) {
+		fmt.Println(`获取锁失败`)
+		return
+	}
+	defer redisClient.ReleaseLock(key, rid)
+	//time.Sleep(6 * time.Second)
+	fmt.Println(`获取锁成功`)
+}
+
