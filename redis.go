@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var RedisHelper = RedisClass{}
+
 // ----------------------------- RedisClass -----------------------------
 
 type RedisClass struct {
