@@ -73,7 +73,7 @@ func TestRedisClass_GetLock(t *testing.T) {
 		return
 	}
 	defer redisClient.ReleaseLock(key, rid)
-	//time.Sleep(6 * time.Second)
+	time.Sleep(6 * time.Second)
 	fmt.Println(`获取锁成功`)
 }
 
