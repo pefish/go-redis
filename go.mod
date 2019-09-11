@@ -6,6 +6,6 @@ require (
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pefish/go-error v0.2.0
-	github.com/pefish/go-logger v0.1.1
-	github.com/pefish/go-reflect v0.0.4
+	github.com/pefish/go-logger v0.1.9
+	github.com/pefish/go-reflect v0.0.7
 )
