@@ -100,7 +100,7 @@ func (this *RedisClass) Del(key string) {
 }
 
 func (this *RedisClass) Expire(key string, expiration time.Duration) {
-	go_logger.Logger.Debug(fmt.Sprintf(`redis expire. key: %s`, key))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis expire. key: %s, expiration: %v`, key, expiration))
 	if err := this.Db.Expire(key, expiration).Err(); err != nil {
 		go_error.ThrowInternalError(`redis expire error`, err)
 	}
@@ -170,7 +170,7 @@ func (this *_SetClass) SisMember(key string, member string) bool {
 }
 
 func (this *_SetClass) Srem(key string, members ...interface{}) {
-	go_logger.Logger.Debug(fmt.Sprintf(`redis srem. key: %s, members: %s`, key, members))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis srem. key: %s, members: %v`, key, members))
 	_, err := this.Db.SRem(key, members...).Result()
 	if err != nil {
 		go_error.ThrowInternalError(`redis srem error`, err)
@@ -211,6 +211,7 @@ func (this *_StringClass) SetNx(key string, value string, expiration time.Durati
 }
 
 func (this *_StringClass) Get(key string) string {
+	go_logger.Logger.Debug(fmt.Sprintf(`redis get. key: %s`, key))
 	result, err := this.Db.Get(key).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
@@ -218,7 +219,7 @@ func (this *_StringClass) Get(key string) string {
 		}
 		go_error.ThrowInternalError(`redis get error`, err)
 	}
-	go_logger.Logger.Debug(fmt.Sprintf(`redis get. key: %s, value: %s`, key, result))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis get. result: %s`, result))
 	return result
 }
 
@@ -237,6 +238,7 @@ type _HashClass struct {
 }
 
 func (this *_HashClass) Hmget(key string, field string) string {
+	go_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s`, key, field))
 	val, err := this.Db.HMGet(key, field).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
@@ -248,11 +250,12 @@ func (this *_HashClass) Hmget(key string, field string) string {
 		return ``
 	}
 	result := val[0].(string)
-	go_logger.Logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s, val: %s`, key, field, result))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis hmget. result: %s`, result))
 	return result
 }
 
 func (this *_HashClass) HGet(key, field string) string {
+	go_logger.Logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s`, key, field))
 	result, err := this.Db.HGet(key, field).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
@@ -260,7 +263,7 @@ func (this *_HashClass) HGet(key, field string) string {
 		}
 		go_error.ThrowInternalError(`redis hget error`, err)
 	}
-	go_logger.Logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s, value: %s`, key, field, result))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis hget. result: %s`, result))
 	return result
 }
 
