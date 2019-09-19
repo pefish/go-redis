@@ -131,7 +131,9 @@ func (this *RedisClass) GetLock(key string, value string, expiration time.Durati
 }
 
 func (this *RedisClass) ReleaseLock(key string, value string) {
-	result := this.Db.Eval(`if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end`, []string{key}, []string{value})
+	script := `if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end`
+	go_logger.Logger.Debug(fmt.Sprintf(`redis eval. script: %s`, script))
+	result := this.Db.Eval(script, []string{key}, []string{value})
 	if err := result.Err(); err != nil {
 		go_error.ThrowInternalError(`redis release lock error`, err)
 	}
