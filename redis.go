@@ -100,7 +100,7 @@ func (this *RedisClass) Del(key string) {
 }
 
 func (this *RedisClass) Expire(key string, expiration time.Duration) {
-	go_logger.Logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis expire. key: %s`, key))
 	if err := this.Db.Expire(key, expiration).Err(); err != nil {
 		go_error.ThrowInternalError(`redis expire error`, err)
 	}
@@ -161,7 +161,7 @@ func (this *_SetClass) Smembers(key string) []string {
 }
 
 func (this *_SetClass) SisMember(key string, member string) bool {
-	go_logger.Logger.Debug(fmt.Sprintf(`redis ismember. key: %s, member: %s`, key, member))
+	go_logger.Logger.Debug(fmt.Sprintf(`redis sismember. key: %s, member: %s`, key, member))
 	result, err := this.Db.SIsMember(key, member).Result()
 	if err != nil {
 		go_error.ThrowInternalError(`redis ismember error`, err)
