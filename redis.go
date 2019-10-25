@@ -43,15 +43,15 @@ func (this *RedisClass) Close() {
 func (this *RedisClass) ConnectWithMap(map_ map[string]interface{}) {
 	var port uint64 = 6379
 	if map_[`port`] != nil {
-		port = go_reflect.Reflect.ToUint64(map_[`port`])
+		port = go_reflect.Reflect.MustToUint64(map_[`port`])
 	}
 	password := ``
 	if map_[`password`] != nil {
-		password = go_reflect.Reflect.ToString(map_[`password`])
+		password = go_reflect.Reflect.MustToString(map_[`password`])
 	}
 	var database uint64 = 0
 	if map_[`db`] != nil {
-		database = go_reflect.Reflect.ToUint64(map_[`db`])
+		database = go_reflect.Reflect.MustToUint64(map_[`db`])
 	}
 	this.Connect(map_[`host`].(string), port, password, database)
 }
@@ -59,15 +59,15 @@ func (this *RedisClass) ConnectWithMap(map_ map[string]interface{}) {
 func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
 	var port uint64 = 6379
 	if configuration.Port != nil {
-		port = go_reflect.Reflect.ToUint64(configuration.Port)
+		port = go_reflect.Reflect.MustToUint64(configuration.Port)
 	}
 	password := ``
 	if configuration.Password != nil {
-		password = go_reflect.Reflect.ToString(configuration.Password)
+		password = go_reflect.Reflect.MustToString(configuration.Password)
 	}
 	var database uint64 = 0
 	if configuration.Db != nil {
-		database = go_reflect.Reflect.ToUint64(configuration.Db)
+		database = go_reflect.Reflect.MustToUint64(configuration.Db)
 	}
 	this.Connect(configuration.Host, port, password, database)
 }
