@@ -28,16 +28,16 @@ func Test_StringClass_SetNx(t *testing.T) {
 	redisClient.ConnectWithMap(map[string]interface{}{
 		`host`: `127.0.0.1`,
 	})
-	bool_ := redisClient.String.SetNx(`test`, `haha`, 2 * time.Second)
+	bool_ := redisClient.String.MustSetNx(`test`, `haha`, 2 * time.Second)
 	if !bool_ {
 		t.Error()
 	}
-	bool3_ := redisClient.String.SetNx(`test`, `haha`, 2 * time.Second)
+	bool3_ := redisClient.String.MustSetNx(`test`, `haha`, 2 * time.Second)
 	if bool3_ {
 		t.Error()
 	}
 	time.Sleep(3 * time.Second)
-	bool1_ := redisClient.String.SetNx(`test`, `haha`, 2 * time.Second)
+	bool1_ := redisClient.String.MustSetNx(`test`, `haha`, 2 * time.Second)
 	if !bool1_ {
 		t.Error()
 	}
@@ -49,7 +49,7 @@ func Test_SetClass_Sadd(t *testing.T) {
 	redisClient.ConnectWithMap(map[string]interface{}{
 		`host`: `127.0.0.1`,
 	})
-	redisClient.Set.Sadd(`test`, `haha`)
+	redisClient.Set.MustSadd(`test`, `haha`)
 }
 
 func Test_SetClass_SisMember(t *testing.T) {
@@ -57,7 +57,7 @@ func Test_SetClass_SisMember(t *testing.T) {
 	redisClient.ConnectWithMap(map[string]interface{}{
 		`host`: `127.0.0.1`,
 	})
-	result := redisClient.Set.SisMember(`test`, `haha`)
+	result := redisClient.Set.MustSisMember(`test`, `haha`)
 	fmt.Println(result)
 }
 
@@ -68,11 +68,11 @@ func TestRedisClass_GetLock(t *testing.T) {
 	})
 	key := `haha`
 	rid := uuid.New().String()
-	if !redisClient.GetLock(key, rid, 5 * time.Second) {
+	if !redisClient.MustGetLock(key, rid, 5 * time.Second) {
 		fmt.Println(`获取锁失败`)
 		return
 	}
-	defer redisClient.ReleaseLock(key, rid)
+	defer redisClient.MustReleaseLock(key, rid)
 	time.Sleep(6 * time.Second)
 	fmt.Println(`获取锁成功`)
 }
