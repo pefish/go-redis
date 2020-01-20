@@ -92,6 +92,7 @@ func (this *RedisClass) MustConnect(host string, port uint64, password string, d
 
 func (this *RedisClass) Connect(host string, port uint64, password string, database uint64) error {
 	address := fmt.Sprintf(`%s:%d`, host, port)
+	this.logger.Info(fmt.Sprintf(`redis connecting.... url: %s`, address))
 	this.Db = redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: password,
