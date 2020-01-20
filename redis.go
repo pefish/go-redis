@@ -54,7 +54,7 @@ func (this *RedisClass) SetLogger(logger InterfaceLogger) {
 	this.logger = logger
 }
 
-func (this *RedisClass) ConnectWithMap(map_ map[string]interface{}) {
+func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
 	var port uint64 = 6379
 	if map_[`port`] != nil {
 		port = uint64(map_[`port`].(float64))
@@ -67,10 +67,10 @@ func (this *RedisClass) ConnectWithMap(map_ map[string]interface{}) {
 	if map_[`db`] != nil {
 		database = uint64(map_[`db`].(float64))
 	}
-	this.Connect(map_[`host`].(string), port, password, database)
+	this.MustConnect(map_[`host`].(string), port, password, database)
 }
 
-func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
+func (this *RedisClass) MustConnectWithConfiguration(configuration Configuration) {
 	var port uint64 = 6379
 	if configuration.Port != 0 {
 		port = configuration.Port
@@ -80,7 +80,7 @@ func (this *RedisClass) ConnectWithConfiguration(configuration Configuration) {
 		password = configuration.Password
 	}
 	var database = configuration.Db
-	this.Connect(configuration.Host, port, password, database)
+	this.MustConnect(configuration.Host, port, password, database)
 }
 
 func (this *RedisClass) MustConnect(host string, port uint64, password string, database uint64) {
@@ -181,7 +181,10 @@ func (this *RedisClass) GetLock(key string, value string, expiration time.Durati
 				<-t.C
 				v, _ := this.String.Get(key)
 				if v == value {
-					this.Expire(key, expiration)
+					err := this.Expire(key, expiration)
+					if err != nil {
+						break
+					}
 				} else {
 					break
 				}
