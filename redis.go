@@ -1,9 +1,11 @@
 package go_redis
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
-	"github.com/pefish/go-reflect"
+	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -55,10 +57,27 @@ func (this *RedisClass) SetLogger(logger InterfaceLogger) {
 	this.logger = logger
 }
 
+func (this *RedisClass) MustToUint64(val interface{}) uint64 {
+	kind := reflect.TypeOf(val).Kind()
+	if kind == reflect.String {
+		int_, err := strconv.ParseUint(val.(string), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		return int_
+	} else if kind == reflect.Float64 {
+		return uint64(val.(float64))
+	}else if kind == reflect.Int {
+		return uint64(val.(int))
+	}else {
+		panic(errors.New(`convert not supported: ` + kind.String()))
+	}
+}
+
 func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
 	var port uint64 = 6379
 	if map_[`port`] != nil {
-		port = go_reflect.Reflect.MustToUint64(map_[`port`])
+		port = this.MustToUint64(map_[`port`])
 	}
 	password := ``
 	if map_[`password`] != nil {
@@ -66,7 +85,7 @@ func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
 	}
 	var database uint64 = 0
 	if map_[`db`] != nil {
-		database = go_reflect.Reflect.MustToUint64(map_[`db`])
+		database = this.MustToUint64(map_[`db`])
 	}
 	this.MustConnect(map_[`host`].(string), port, password, database)
 }
