@@ -3,6 +3,7 @@ package go_redis
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/pefish/go-reflect"
 	"time"
 )
 
@@ -57,7 +58,7 @@ func (this *RedisClass) SetLogger(logger InterfaceLogger) {
 func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
 	var port uint64 = 6379
 	if map_[`port`] != nil {
-		port = uint64(map_[`port`].(float64))
+		port = go_reflect.Reflect.MustToUint64(map_[`port`])
 	}
 	password := ``
 	if map_[`password`] != nil {
@@ -65,7 +66,7 @@ func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
 	}
 	var database uint64 = 0
 	if map_[`db`] != nil {
-		database = uint64(map_[`db`].(float64))
+		database = go_reflect.Reflect.MustToUint64(map_[`db`])
 	}
 	this.MustConnect(map_[`host`].(string), port, password, database)
 }
