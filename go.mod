@@ -3,16 +3,13 @@ module github.com/pefish/go-redis
 require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/google/uuid v1.1.1
+	github.com/pefish/go-logger v0.5.0
 )
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
-	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
-	github.com/pefish/go-format v0.2.2 // indirect
-	github.com/pefish/go-logger v0.5.0 // indirect
 	go.uber.org/atomic v1.5.0 // indirect
 	go.uber.org/multierr v1.3.0 // indirect
 	go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee // indirect
