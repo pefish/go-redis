@@ -341,6 +341,43 @@ func (lc *_ListClass) LLen(key string) (uint64, error) {
 	return uint64(result), nil
 }
 
+func (lc *_ListClass) MustLRange(key string, start int64, stop int64) []string {
+	result, err := lc.LRange(key, start, stop)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (lc *_ListClass) LRange(key string, start int64, stop int64) ([]string, error) {
+	lc.logger.Debug(fmt.Sprintf(`redis lrange. key: %s`, key))
+	result, err := lc.db.LRange(key, start, stop).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+	lc.logger.Debug(fmt.Sprintf(`redis lrange. result: #%v`, result))
+	return result, nil
+}
+
+func (lc *_ListClass) MustListAll(key string) []string {
+	result, err := lc.ListAll(key)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (lc *_ListClass) ListAll(key string) ([]string, error) {
+	result, err := lc.LRange(key, 0, -1)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // ----------------------------- _StringClass -----------------------------
 
 type _StringClass struct {

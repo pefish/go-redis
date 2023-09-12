@@ -63,3 +63,15 @@ func TestRedisClass_GetLock(t *testing.T) {
 	time.Sleep(6 * time.Second)
 	fmt.Println(`获取锁成功`)
 }
+
+func Test__ListClass_ListAll(t *testing.T) {
+	RedisInstance.MustConnect(Configuration{
+		Host: `127.0.0.1`,
+	})
+	RedisInstance.List.MustRPush("test_list1", "1")
+	RedisInstance.List.MustRPush("test_list1", "2")
+	RedisInstance.List.MustRPush("test_list1", "3")
+
+	result := RedisInstance.List.MustListAll("test_list1")
+	fmt.Println(result)
+}
