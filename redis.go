@@ -1,26 +1,13 @@
 package go_redis
 
 import (
-	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
-	"reflect"
-	"strconv"
+	go_logger "github.com/pefish/go-logger"
 	"time"
 )
 
-type InterfaceLogger interface {
-	Debug(args ...interface{})
-	DebugF(format string, args ...interface{})
-	Info(args ...interface{})
-	InfoF(format string, args ...interface{})
-	Warn(args ...interface{})
-	WarnF(format string, args ...interface{})
-	Error(args ...interface{})
-	ErrorF(format string, args ...interface{})
-}
-
-var RedisHelper = RedisClass{}
+var RedisInstance = NewRedisInstance()
 
 // ----------------------------- RedisClass -----------------------------
 
@@ -32,7 +19,13 @@ type RedisClass struct {
 	Order  *_OrderSetClass
 	Hash   *_HashClass
 
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
+}
+
+func NewRedisInstance() *RedisClass {
+	return &RedisClass{
+		logger: go_logger.Logger,
+	}
 }
 
 type Configuration struct {
@@ -42,55 +35,30 @@ type Configuration struct {
 	Password string
 }
 
-func (this *RedisClass) Close() {
-	if this.Db != nil {
-		err := this.Db.Close()
+func (rc *RedisClass) Close() {
+	if rc.Db != nil {
+		err := rc.Db.Close()
 		if err != nil {
-			this.logger.Error(err)
+			rc.logger.Error(err)
 		} else {
-			this.logger.Info(`redis close succeed.`)
+			rc.logger.Info(`redis close succeed.`)
 		}
 	}
 }
 
-func (this *RedisClass) SetLogger(logger InterfaceLogger) {
-	this.logger = logger
+func (rc *RedisClass) SetLogger(logger go_logger.InterfaceLogger) *RedisClass {
+	rc.logger = logger
+	return rc
 }
 
-func (this *RedisClass) MustToUint64(val interface{}) uint64 {
-	kind := reflect.TypeOf(val).Kind()
-	if kind == reflect.String {
-		int_, err := strconv.ParseUint(val.(string), 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		return int_
-	} else if kind == reflect.Float64 {
-		return uint64(val.(float64))
-	}else if kind == reflect.Int {
-		return uint64(val.(int))
-	}else {
-		panic(errors.New(`convert not supported: ` + kind.String()))
+func (rc *RedisClass) MustConnect(configuration Configuration) {
+	err := rc.Connect(configuration)
+	if err != nil {
+		panic(err)
 	}
 }
 
-func (this *RedisClass) MustConnectWithMap(map_ map[string]interface{}) {
-	var port uint64 = 6379
-	if map_[`port`] != nil {
-		port = this.MustToUint64(map_[`port`])
-	}
-	password := ``
-	if map_[`password`] != nil {
-		password = map_[`password`].(string)
-	}
-	var database uint64 = 0
-	if map_[`db`] != nil {
-		database = this.MustToUint64(map_[`db`])
-	}
-	this.MustConnect(map_[`host`].(string), port, password, database)
-}
-
-func (this *RedisClass) MustConnectWithConfiguration(configuration Configuration) {
+func (rc *RedisClass) Connect(configuration Configuration) error {
 	var port uint64 = 6379
 	if configuration.Port != 0 {
 		port = configuration.Port
@@ -100,93 +68,83 @@ func (this *RedisClass) MustConnectWithConfiguration(configuration Configuration
 		password = configuration.Password
 	}
 	var database = configuration.Db
-	this.MustConnect(configuration.Host, port, password, database)
-}
 
-func (this *RedisClass) MustConnect(host string, port uint64, password string, database uint64) {
-	err := this.Connect(host, port, password, database)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (this *RedisClass) Connect(host string, port uint64, password string, database uint64) error {
-	address := fmt.Sprintf(`%s:%d`, host, port)
-	this.logger.Info(fmt.Sprintf(`redis connecting.... url: %s`, address))
-	this.Db = redis.NewClient(&redis.Options{
+	address := fmt.Sprintf(`%s:%d`, configuration.Host, port)
+	rc.logger.Info(fmt.Sprintf(`redis connecting.... url: %s`, address))
+	rc.Db = redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: password,
 		DB:       int(database),
 	})
-	_, err := this.Db.Ping().Result()
+	_, err := rc.Db.Ping().Result()
 	if err != nil {
 		return err
 	}
-	this.logger.Info(fmt.Sprintf(`redis connect succeed. url: %s`, address))
+	rc.logger.Info(fmt.Sprintf(`redis connect succeed. url: %s`, address))
 
-	this.Set = &_SetClass{
-		db:     this.Db,
-		logger: this.logger,
+	rc.Set = &_SetClass{
+		db:     rc.Db,
+		logger: rc.logger,
 	}
-	this.List = &_ListClass{
-		db:     this.Db,
-		logger: this.logger,
+	rc.List = &_ListClass{
+		db:     rc.Db,
+		logger: rc.logger,
 	}
-	this.String = &_StringClass{
-		db:     this.Db,
-		logger: this.logger,
+	rc.String = &_StringClass{
+		db:     rc.Db,
+		logger: rc.logger,
 	}
-	this.Order = &_OrderSetClass{
-		db:     this.Db,
-		logger: this.logger,
+	rc.Order = &_OrderSetClass{
+		db:     rc.Db,
+		logger: rc.logger,
 	}
-	this.Hash = &_HashClass{
-		db:     this.Db,
-		logger: this.logger,
+	rc.Hash = &_HashClass{
+		db:     rc.Db,
+		logger: rc.logger,
 	}
 	return nil
 }
 
-func (this *RedisClass) MustDel(key string) {
-	err := this.Del(key)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (this *RedisClass) Del(key string) error {
-	this.logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
-	if err := this.Db.Del(key).Err(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (this *RedisClass) MustExpire(key string, expiration time.Duration) {
-	err := this.Expire(key, expiration)
+func (rc *RedisClass) MustDel(key string) {
+	err := rc.Del(key)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *RedisClass) Expire(key string, expiration time.Duration) error {
-	this.logger.Debug(fmt.Sprintf(`redis expire. key: %s, expiration: %v`, key, expiration))
-	if err := this.Db.Expire(key, expiration).Err(); err != nil {
+func (rc *RedisClass) Del(key string) error {
+	rc.logger.Debug(fmt.Sprintf(`redis del. key: %s`, key))
+	if err := rc.Db.Del(key).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *RedisClass) MustGetLock(key string, value string, expiration time.Duration) bool {
-	result, err := this.GetLock(key, value, expiration)
+func (rc *RedisClass) MustExpire(key string, expiration time.Duration) {
+	err := rc.Expire(key, expiration)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (rc *RedisClass) Expire(key string, expiration time.Duration) error {
+	rc.logger.Debug(fmt.Sprintf(`redis expire. key: %s, expiration: %v`, key, expiration))
+	if err := rc.Db.Expire(key, expiration).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rc *RedisClass) MustGetLock(key string, value string, expiration time.Duration) bool {
+	result, err := rc.GetLock(key, value, expiration)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *RedisClass) GetLock(key string, value string, expiration time.Duration) (bool, error) {
-	result, err := this.String.SetNx(key, value, expiration)
+func (rc *RedisClass) GetLock(key string, value string, expiration time.Duration) (bool, error) {
+	result, err := rc.String.SetNx(key, value, expiration)
 	if err != nil {
 		return false, err
 	}
@@ -200,9 +158,9 @@ func (this *RedisClass) GetLock(key string, value string, expiration time.Durati
 
 			for {
 				<-t.C
-				v, _ := this.String.Get(key)
+				v, _ := rc.String.Get(key)
 				if v == value {
-					err := this.Expire(key, expiration)
+					err := rc.Expire(key, expiration)
 					if err != nil {
 						break
 					}
@@ -215,17 +173,17 @@ func (this *RedisClass) GetLock(key string, value string, expiration time.Durati
 	return result, nil
 }
 
-func (this *RedisClass) MustReleaseLock(key string, value string) {
-	err := this.ReleaseLock(key, value)
+func (rc *RedisClass) MustReleaseLock(key string, value string) {
+	err := rc.ReleaseLock(key, value)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *RedisClass) ReleaseLock(key string, value string) error {
+func (rc *RedisClass) ReleaseLock(key string, value string) error {
 	script := `if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end`
-	this.logger.Debug(fmt.Sprintf(`redis eval. script: %s`, script))
-	result := this.Db.Eval(script, []string{key}, []string{value})
+	rc.logger.Debug(fmt.Sprintf(`redis eval. script: %s`, script))
+	result := rc.Db.Eval(script, []string{key}, []string{value})
 	if err := result.Err(); err != nil {
 		return err
 	}
@@ -236,68 +194,68 @@ func (this *RedisClass) ReleaseLock(key string, value string) error {
 
 type _SetClass struct {
 	db     *redis.Client
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
 }
 
-func (this *_SetClass) MustSadd(key string, value string) {
-	err := this.Sadd(key, value)
+func (rc *_SetClass) MustSadd(key string, value string) {
+	err := rc.Sadd(key, value)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *_SetClass) Sadd(key string, value string) error {
-	this.logger.Debug(fmt.Sprintf(`redis sadd. key: %s, value: %s`, key, value))
-	if err := this.db.SAdd(key, value).Err(); err != nil {
+func (rc *_SetClass) Sadd(key string, value string) error {
+	rc.logger.Debug(fmt.Sprintf(`redis sadd. key: %s, value: %s`, key, value))
+	if err := rc.db.SAdd(key, value).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *_SetClass) MustSmembers(key string) []string {
-	result, err := this.Smembers(key)
+func (rc *_SetClass) MustSmembers(key string) []string {
+	result, err := rc.Smembers(key)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_SetClass) Smembers(key string) ([]string, error) {
-	this.logger.Debug(fmt.Sprintf(`redis smembers. key: %s`, key))
-	result, err := this.db.SMembers(key).Result()
+func (rc *_SetClass) Smembers(key string) ([]string, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis smembers. key: %s`, key))
+	result, err := rc.db.SMembers(key).Result()
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (this *_SetClass) MustSisMember(key string, member string) bool {
-	result, err := this.SisMember(key, member)
+func (rc *_SetClass) MustSisMember(key string, member string) bool {
+	result, err := rc.SisMember(key, member)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_SetClass) SisMember(key string, member string) (bool, error) {
-	this.logger.Debug(fmt.Sprintf(`redis sismember. key: %s, member: %s`, key, member))
-	result, err := this.db.SIsMember(key, member).Result()
+func (rc *_SetClass) SisMember(key string, member string) (bool, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis sismember. key: %s, member: %s`, key, member))
+	result, err := rc.db.SIsMember(key, member).Result()
 	if err != nil {
 		return false, err
 	}
 	return result, nil
 }
 
-func (this *_SetClass) MustSrem(key string, members ...interface{}) {
-	err := this.Srem(key, members)
+func (rc *_SetClass) MustSrem(key string, members ...interface{}) {
+	err := rc.Srem(key, members)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *_SetClass) Srem(key string, members ...interface{}) error {
-	this.logger.Debug(fmt.Sprintf(`redis srem. key: %s, members: %v`, key, members))
-	_, err := this.db.SRem(key, members...).Result()
+func (rc *_SetClass) Srem(key string, members ...interface{}) error {
+	rc.logger.Debug(fmt.Sprintf(`redis srem. key: %s, members: %v`, key, members))
+	_, err := rc.db.SRem(key, members...).Result()
 	if err != nil {
 		return err
 	}
@@ -308,69 +266,70 @@ func (this *_SetClass) Srem(key string, members ...interface{}) error {
 
 type _ListClass struct {
 	db     *redis.Client
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
 }
 
 // ----------------------------- _StringClass -----------------------------
 
 type _StringClass struct {
 	db     *redis.Client
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
 }
 
-func (this *_StringClass) MustSet(key string, value string, expiration time.Duration) {
-	err := this.Set(key, value, expiration)
+func (rc *_StringClass) MustSet(key string, value string, expiration time.Duration) {
+	err := rc.Set(key, value, expiration)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *_StringClass) Set(key string, value string, expiration time.Duration) error {
-	this.logger.Debug(fmt.Sprintf(`redis set. key: %s, val: %s, expiration: %v`, key, value, expiration))
-	if err := this.db.Set(key, value, expiration).Err(); err != nil {
+func (rc *_StringClass) Set(key string, value string, expiration time.Duration) error {
+	rc.logger.Debug(fmt.Sprintf(`redis set. key: %s, val: %s, expiration: %v`, key, value, expiration))
+	if err := rc.db.Set(key, value, expiration).Err(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (this *_StringClass) MustSetNx(key string, value string, expiration time.Duration) bool {
-	result, err := this.SetNx(key, value, expiration)
+func (rc *_StringClass) MustSetNx(key string, value string, expiration time.Duration) bool {
+	result, err := rc.SetNx(key, value, expiration)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-/**
+/*
+*
 设置成功返回true
 */
-func (this *_StringClass) SetNx(key string, value string, expiration time.Duration) (bool, error) {
-	this.logger.Debug(fmt.Sprintf(`redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration))
-	result := this.db.SetNX(key, value, expiration)
+func (rc *_StringClass) SetNx(key string, value string, expiration time.Duration) (bool, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration))
+	result := rc.db.SetNX(key, value, expiration)
 	if err := result.Err(); err != nil {
 		return false, err
 	}
 	return result.Val(), nil
 }
 
-func (this *_StringClass) MustGet(key string) string {
-	result, err := this.Get(key)
+func (rc *_StringClass) MustGet(key string) string {
+	result, err := rc.Get(key)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_StringClass) Get(key string) (string, error) {
-	this.logger.Debug(fmt.Sprintf(`redis get. key: %s`, key))
-	result, err := this.db.Get(key).Result()
+func (rc *_StringClass) Get(key string) (string, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis get. key: %s`, key))
+	result, err := rc.db.Get(key).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
 		return ``, err
 	}
-	this.logger.Debug(fmt.Sprintf(`redis get. result: %s`, result))
+	rc.logger.Debug(fmt.Sprintf(`redis get. result: %s`, result))
 	return result, nil
 }
 
@@ -378,27 +337,27 @@ func (this *_StringClass) Get(key string) (string, error) {
 
 type _OrderSetClass struct {
 	db     *redis.Client
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
 }
 
 // ----------------------------- _HashClass -----------------------------
 
 type _HashClass struct {
 	db     *redis.Client
-	logger InterfaceLogger
+	logger go_logger.InterfaceLogger
 }
 
-func (this *_HashClass) MustHmget(key string, field string) string {
-	result, err := this.Hmget(key, field)
+func (rc *_HashClass) MustHmget(key string, field string) string {
+	result, err := rc.Hmget(key, field)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_HashClass) Hmget(key string, field string) (string, error) {
-	this.logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s`, key, field))
-	val, err := this.db.HMGet(key, field).Result()
+func (rc *_HashClass) Hmget(key string, field string) (string, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis hmget. key: %s, field: %s`, key, field))
+	val, err := rc.db.HMGet(key, field).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return ``, nil
@@ -409,64 +368,62 @@ func (this *_HashClass) Hmget(key string, field string) (string, error) {
 		return ``, nil
 	}
 	result := val[0].(string)
-	this.logger.Debug(fmt.Sprintf(`redis hmget. result: %s`, result))
+	rc.logger.Debug(fmt.Sprintf(`redis hmget. result: %s`, result))
 	return result, nil
 }
 
-func (this *_HashClass) MustHGet(key, field string) string {
-	result, err := this.HGet(key, field)
+func (rc *_HashClass) MustHGet(key, field string) string {
+	result, err := rc.HGet(key, field)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_HashClass) HGet(key, field string) (string, error) {
-	this.logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s`, key, field))
-	result, err := this.db.HGet(key, field).Result()
+func (rc *_HashClass) HGet(key, field string) (string, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis hget. key: %s, field: %s`, key, field))
+	result, err := rc.db.HGet(key, field).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
 		return ``, err
 	}
-	this.logger.Debug(fmt.Sprintf(`redis hget. result: %s`, result))
+	rc.logger.Debug(fmt.Sprintf(`redis hget. result: %s`, result))
 	return result, nil
 }
 
-
-func (this *_HashClass) MustHGetAll(key string) map[string]string {
-	result, err := this.HGetAll(key)
+func (rc *_HashClass) MustHGetAll(key string) map[string]string {
+	result, err := rc.HGetAll(key)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func (this *_HashClass) HGetAll(key string) (map[string]string, error) {
-	this.logger.Debug(fmt.Sprintf(`redis hgetall. key: %s`, key))
-	result, err := this.db.HGetAll(key).Result()
+func (rc *_HashClass) HGetAll(key string) (map[string]string, error) {
+	rc.logger.Debug(fmt.Sprintf(`redis hgetall. key: %s`, key))
+	result, err := rc.db.HGetAll(key).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return map[string]string{}, nil
 		}
 		return nil, err
 	}
-	this.logger.Debug(fmt.Sprintf(`redis hgetall. result: %s`, result))
+	rc.logger.Debug(fmt.Sprintf(`redis hgetall. result: %s`, result))
 	return result, nil
 }
 
-
-func (this *_HashClass) MustHSet(key, field string, value interface{}) {
-	err := this.HSet(key, field, value)
+func (rc *_HashClass) MustHSet(key, field string, value interface{}) {
+	err := rc.HSet(key, field, value)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *_HashClass) HSet(key, field string, value interface{}) error {
-	this.logger.Debug(fmt.Sprintf(`redis hset. key: %s, field: %s, value: %s`, key, field, value))
-	if err := this.db.HSet(key, field, value).Err(); err != nil {
+func (rc *_HashClass) HSet(key, field string, value interface{}) error {
+	rc.logger.Debug(fmt.Sprintf(`redis hset. key: %s, field: %s, value: %s`, key, field, value))
+	if err := rc.db.HSet(key, field, value).Err(); err != nil {
 		return err
 	}
 	return nil

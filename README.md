@@ -1,4 +1,4 @@
-# p-go-redis
+# go-redis
 
 #### Description
 redis tools
