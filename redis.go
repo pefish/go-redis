@@ -320,6 +320,27 @@ func (lc *_ListClass) LPop(key string) (string, error) {
 	return result, nil
 }
 
+func (lc *_ListClass) MustRPop(key string) string {
+	result, err := lc.RPop(key)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (lc *_ListClass) RPop(key string) (string, error) {
+	lc.logger.Debug(fmt.Sprintf(`redis rpop. key: %s`, key))
+	result, err := lc.db.RPop(key).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return "", nil
+		}
+		return "", err
+	}
+	lc.logger.Debug(fmt.Sprintf(`redis rpop. result: %s`, result))
+	return result, nil
+}
+
 func (lc *_ListClass) MustLLen(key string) uint64 {
 	result, err := lc.LLen(key)
 	if err != nil {
@@ -350,7 +371,7 @@ func (lc *_ListClass) MustLRange(key string, start int64, stop int64) []string {
 }
 
 func (lc *_ListClass) LRange(key string, start int64, stop int64) ([]string, error) {
-	lc.logger.Debug(fmt.Sprintf(`redis lrange. key: %s`, key))
+	lc.logger.Debug(fmt.Sprintf(`redis lrange. key: %s, start: %d, stop: %d`, key, start, stop))
 	result, err := lc.db.LRange(key, start, stop).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
@@ -376,6 +397,21 @@ func (lc *_ListClass) ListAll(key string) ([]string, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (lc *_ListClass) MustLTrim(key string, start int64, stop int64) {
+	err := lc.LTrim(key, start, stop)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (lc *_ListClass) LTrim(key string, start int64, stop int64) error {
+	lc.logger.Debug(fmt.Sprintf(`redis ltrim. key: %s, start: %d, stop: %d`, key, start, stop))
+	if err := lc.db.LTrim(key, start, stop).Err(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // ----------------------------- _StringClass -----------------------------

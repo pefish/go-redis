@@ -74,4 +74,7 @@ func Test__ListClass_ListAll(t *testing.T) {
 
 	result := RedisInstance.List.MustListAll("test_list1")
 	fmt.Println(result)
+
+	result1 := RedisInstance.List.MustListAll("test_list10")
+	fmt.Println(result1)
 }
