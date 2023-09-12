@@ -269,6 +269,78 @@ type _ListClass struct {
 	logger go_logger.InterfaceLogger
 }
 
+func (lc *_ListClass) MustLPush(key string, value string) {
+	err := lc.LPush(key, value)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (lc *_ListClass) LPush(key string, value string) error {
+	lc.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %s`, key, value))
+	if err := lc.db.LPush(key, value).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (lc *_ListClass) MustRPush(key string, value string) {
+	err := lc.RPush(key, value)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (lc *_ListClass) RPush(key string, value string) error {
+	lc.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %s`, key, value))
+	if err := lc.db.RPush(key, value).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (lc *_ListClass) MustLPop(key string) string {
+	result, err := lc.LPop(key)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (lc *_ListClass) LPop(key string) (string, error) {
+	lc.logger.Debug(fmt.Sprintf(`redis lpop. key: %s`, key))
+	result, err := lc.db.LPop(key).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return "", nil
+		}
+		return "", err
+	}
+	lc.logger.Debug(fmt.Sprintf(`redis lpop. result: %s`, result))
+	return result, nil
+}
+
+func (lc *_ListClass) MustLLen(key string) uint64 {
+	result, err := lc.LLen(key)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func (lc *_ListClass) LLen(key string) (uint64, error) {
+	lc.logger.Debug(fmt.Sprintf(`redis llen. key: %s`, key))
+	result, err := lc.db.LLen(key).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return 0, nil
+		}
+		return 0, err
+	}
+	lc.logger.Debug(fmt.Sprintf(`redis llen. result: %d`, result))
+	return uint64(result), nil
+}
+
 // ----------------------------- _StringClass -----------------------------
 
 type _StringClass struct {
