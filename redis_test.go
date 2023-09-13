@@ -66,7 +66,7 @@ func TestRedisClass_GetLock(t *testing.T) {
 
 func Test__ListClass_ListAll(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Address: `127.0.0.1`,
+		Address: `127.0.0.1:6379`,
 	})
 	RedisInstance.List.MustRPush("test_list1", "1")
 	RedisInstance.List.MustRPush("test_list1", "2")
