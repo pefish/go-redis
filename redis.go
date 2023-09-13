@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	go_logger "github.com/pefish/go-logger"
+	"strings"
 	"time"
 )
 
@@ -29,8 +30,7 @@ func NewRedisInstance() *RedisClass {
 }
 
 type Configuration struct {
-	Host     string
-	Port     uint64
+	Address  string
 	Db       uint64
 	Password string
 }
@@ -59,20 +59,18 @@ func (rc *RedisClass) MustConnect(configuration Configuration) {
 }
 
 func (rc *RedisClass) Connect(configuration Configuration) error {
-	var port uint64 = 6379
-	if configuration.Port != 0 {
-		port = configuration.Port
-	}
 	password := ``
 	if configuration.Password != `` {
 		password = configuration.Password
 	}
 	var database = configuration.Db
 
-	address := fmt.Sprintf(`%s:%d`, configuration.Host, port)
-	rc.logger.Info(fmt.Sprintf(`redis connecting.... url: %s`, address))
+	if strings.Index(configuration.Address, ":") == -1 {
+		configuration.Address += ":6379"
+	}
+	rc.logger.Info(fmt.Sprintf(`redis connecting.... url: %s`, configuration.Address))
 	rc.Db = redis.NewClient(&redis.Options{
-		Addr:     address,
+		Addr:     configuration.Address,
 		Password: password,
 		DB:       int(database),
 	})
@@ -80,7 +78,7 @@ func (rc *RedisClass) Connect(configuration Configuration) error {
 	if err != nil {
 		return err
 	}
-	rc.logger.Info(fmt.Sprintf(`redis connect succeed. url: %s`, address))
+	rc.logger.Info(fmt.Sprintf(`redis connect succeed.`))
 
 	rc.Set = &_SetClass{
 		db:     rc.Db,

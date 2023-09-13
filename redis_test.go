@@ -9,14 +9,14 @@ import (
 
 func TestRedisClass_ConnectWithConfiguration(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	RedisInstance.Close()
 }
 
 func Test_StringClass_SetNx(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	bool_ := RedisInstance.String.MustSetNx(`test_str`, `haha`, 2*time.Second)
 	if !bool_ {
@@ -36,14 +36,14 @@ func Test_StringClass_SetNx(t *testing.T) {
 
 func Test_SetClass_Sadd(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	RedisInstance.Set.MustSadd(`test_set`, `haha`)
 }
 
 func Test_SetClass_SisMember(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	result := RedisInstance.Set.MustSisMember(`test_set`, `haha`)
 	fmt.Println(result)
@@ -51,7 +51,7 @@ func Test_SetClass_SisMember(t *testing.T) {
 
 func TestRedisClass_GetLock(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	key := `haha`
 	rid := uuid.New().String()
@@ -66,7 +66,7 @@ func TestRedisClass_GetLock(t *testing.T) {
 
 func Test__ListClass_ListAll(t *testing.T) {
 	RedisInstance.MustConnect(Configuration{
-		Host: `127.0.0.1`,
+		Address: `127.0.0.1`,
 	})
 	RedisInstance.List.MustRPush("test_list1", "1")
 	RedisInstance.List.MustRPush("test_list1", "2")
