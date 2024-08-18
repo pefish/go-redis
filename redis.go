@@ -47,7 +47,7 @@ func (rc *RedisType) Close() {
 	}
 }
 
-func (rc *RedisType) Connect(configuration Configuration) error {
+func (rc *RedisType) Connect(configuration *Configuration) error {
 	password := ``
 	if configuration.Password != `` {
 		password = configuration.Password
