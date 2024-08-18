@@ -14,12 +14,12 @@ var RedisInstance = NewRedisInstance(&i_logger.DefaultLogger)
 // ----------------------------- RedisClass -----------------------------
 
 type RedisType struct {
-	Db     *redis.Client
-	Set    *_SetType
-	List   *_ListType
-	String *_StringClass
-	Order  *_OrderSetType
-	Hash   *_HashType
+	Db       *redis.Client
+	Set      *_SetType
+	List     *_ListType
+	String   *_StringClass
+	OrderSet *_OrderSetType
+	Hash     *_HashType
 
 	logger i_logger.ILogger
 }
@@ -81,7 +81,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 		db:     rc.Db,
 		logger: rc.logger,
 	}
-	rc.Order = &_OrderSetType{
+	rc.OrderSet = &_OrderSetType{
 		db:     rc.Db,
 		logger: rc.logger,
 	}
