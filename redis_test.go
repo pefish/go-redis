@@ -2,32 +2,33 @@ package go_redis
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func TestRedisClass_ConnectWithConfiguration(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1`,
 	})
 	RedisInstance.Close()
 }
 
 func Test_StringClass_SetNx(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1`,
 	})
-	bool_ := RedisInstance.String.MustSetNx(`test_str`, `haha`, 2*time.Second)
+	bool_, _ := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
 	if !bool_ {
 		t.Error()
 	}
-	bool3_ := RedisInstance.String.MustSetNx(`test_str`, `haha`, 2*time.Second)
+	bool3_, _ := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
 	if bool3_ {
 		t.Error()
 	}
 	time.Sleep(3 * time.Second)
-	bool1_ := RedisInstance.String.MustSetNx(`test_str`, `haha`, 2*time.Second)
+	bool1_, _ := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
 	if !bool1_ {
 		t.Error()
 	}
@@ -35,14 +36,14 @@ func Test_StringClass_SetNx(t *testing.T) {
 }
 
 func Test_SetClass_Sadd(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1`,
 	})
 	RedisInstance.Set.MustSadd(`test_set`, `haha`)
 }
 
 func Test_SetClass_SisMember(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1`,
 	})
 	result := RedisInstance.Set.MustSisMember(`test_set`, `haha`)
@@ -50,7 +51,7 @@ func Test_SetClass_SisMember(t *testing.T) {
 }
 
 func TestRedisClass_GetLock(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1`,
 	})
 	key := `haha`
@@ -65,7 +66,7 @@ func TestRedisClass_GetLock(t *testing.T) {
 }
 
 func Test__ListClass_ListAll(t *testing.T) {
-	RedisInstance.MustConnect(Configuration{
+	RedisInstance.Connect(Configuration{
 		Address: `127.0.0.1:6379`,
 	})
 	RedisInstance.List.MustRPush("test_list1", "1")
