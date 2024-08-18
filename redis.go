@@ -31,7 +31,7 @@ func NewRedisInstance(logger i_logger.ILogger) *RedisType {
 }
 
 type Configuration struct {
-	Address  string
+	Url      string
 	Db       uint64
 	Password string
 }
@@ -54,12 +54,12 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 	}
 	var database = configuration.Db
 
-	if !strings.Contains(configuration.Address, ":") {
-		configuration.Address += ":6379"
+	if !strings.Contains(configuration.Url, ":") {
+		configuration.Url += ":6379"
 	}
-	rc.logger.InfoF(`Redis connecting.... url: %s`, configuration.Address)
+	rc.logger.InfoF(`Redis connecting.... url: %s`, configuration.Url)
 	rc.Db = redis.NewClient(&redis.Options{
-		Addr:     configuration.Address,
+		Addr:     configuration.Url,
 		Password: password,
 		DB:       int(database),
 	})
