@@ -57,7 +57,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 	if !strings.Contains(configuration.Address, ":") {
 		configuration.Address += ":6379"
 	}
-	rc.logger.Info(fmt.Sprintf(`Redis connecting.... url: %s`, configuration.Address))
+	rc.logger.InfoF(`Redis connecting.... url: %s`, configuration.Address)
 	rc.Db = redis.NewClient(&redis.Options{
 		Addr:     configuration.Address,
 		Password: password,
