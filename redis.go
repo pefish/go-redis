@@ -9,8 +9,6 @@ import (
 	i_logger "github.com/pefish/go-interface/i-logger"
 )
 
-var RedisInstance = NewRedisInstance(&i_logger.DefaultLogger)
-
 // ----------------------------- RedisClass -----------------------------
 
 type RedisType struct {
