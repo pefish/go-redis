@@ -440,7 +440,7 @@ type _HashType struct {
 	logger i_logger.ILogger
 }
 
-// 获取存储在哈希表中指定字段的值。
+// 获取存储在哈希表中指定字段的值。不存在就返回空字符串
 func (rc *_HashType) Get(key, field string) (string, error) {
 	rc.logger.DebugF(`Redis hget. key: %s, field: %s`, key, field)
 	result, err := rc.db.HGet(key, field).Result()
@@ -471,8 +471,54 @@ func (rc *_HashType) GetAll(key string) (map[string]string, error) {
 // 将哈希表 key 中的字段 field 的值设为 value 。
 func (rc *_HashType) Set(key, field string, value interface{}) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
-	if err := rc.db.HSet(key, field, value).Err(); err != nil {
+	err := rc.db.HSet(key, field, value).Err()
+	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (rc *_HashType) SetNX(key, field string, value interface{}) error {
+	rc.logger.DebugF(`Redis hsetnx. key: %s, field: %s, value: %s`, key, field, value)
+	err := rc.db.HSetNX(key, field, value).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rc *_HashType) Del(key, field string) error {
+	rc.logger.DebugF(`Redis hdel. key: %s, field: %s`, key, field)
+	err := rc.db.HDel(key, field).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rc *_HashType) Len(key string) (int64, error) {
+	rc.logger.DebugF(`Redis hlen. key: %s`, key)
+	result, err := rc.db.HLen(key).Result()
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
+
+func (rc *_HashType) Fields(key string) ([]string, error) {
+	rc.logger.DebugF(`Redis keys. key: %s`, key)
+	result, err := rc.db.HKeys(key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (rc *_HashType) Values(key string) ([]string, error) {
+	rc.logger.DebugF(`Redis hvals. key: %s`, key)
+	result, err := rc.db.HVals(key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
