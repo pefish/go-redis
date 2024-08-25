@@ -478,13 +478,13 @@ func (rc *_HashType) Set(key, field string, value interface{}) error {
 	return nil
 }
 
-func (rc *_HashType) SetNX(key, field string, value interface{}) error {
+func (rc *_HashType) SetNX(key, field string, value interface{}) (bool, error) {
 	rc.logger.DebugF(`Redis hsetnx. key: %s, field: %s, value: %s`, key, field, value)
-	err := rc.db.HSetNX(key, field, value).Err()
+	result, err := rc.db.HSetNX(key, field, value).Result()
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	return result, nil
 }
 
 func (rc *_HashType) Del(key, field string) error {
