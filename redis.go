@@ -99,6 +99,15 @@ func (rc *RedisType) Del(key string) error {
 	return nil
 }
 
+func (rc *RedisType) Exists(key string) (bool, error) {
+	rc.logger.DebugF(`Redis exists. key: %s`, key)
+	result, err := rc.Db.Exists(key).Result()
+	if err != nil {
+		return false, errors.Wrap(err, "")
+	}
+	return result == 1, nil
+}
+
 func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 	rc.logger.DebugF(`Redis expire. key: %s, expiration: %v`, key, expiration)
 	if err := rc.Db.Expire(key, expiration).Err(); err != nil {
