@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-redis/redis"
 	i_logger "github.com/pefish/go-interface/i-logger"
+	"github.com/pkg/errors"
 )
 
 // ----------------------------- RedisClass -----------------------------
@@ -63,7 +64,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 	})
 	_, err := rc.Db.Ping().Result()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	rc.logger.Info(`Redis connect succeed.`)
 
@@ -93,7 +94,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 func (rc *RedisType) Del(key string) error {
 	rc.logger.DebugF(`Redis del. key: %s`, key)
 	if err := rc.Db.Del(key).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -101,7 +102,7 @@ func (rc *RedisType) Del(key string) error {
 func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 	rc.logger.DebugF(`Redis expire. key: %s, expiration: %v`, key, expiration)
 	if err := rc.Db.Expire(key, expiration).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -109,7 +110,7 @@ func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 func (rc *RedisType) GetLock(key string, value string, expiration time.Duration) (bool, error) {
 	result, err := rc.String.SetNx(key, value, expiration)
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "")
 	}
 	if result {
 		// 自动续锁
@@ -141,7 +142,7 @@ func (rc *RedisType) ReleaseLock(key string, value string) error {
 	rc.logger.DebugF(`Redis eval. script: %s`, script)
 	result := rc.Db.Eval(script, []string{key}, []string{value})
 	if err := result.Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -157,7 +158,7 @@ type _SetType struct {
 func (rc *_SetType) Add(key string, member string) error {
 	rc.logger.DebugF(`Redis sadd. key: %s, member: %s`, key, member)
 	if err := rc.db.SAdd(key, member).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -167,7 +168,7 @@ func (rc *_SetType) Members(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis smembers. key: %s`, key)
 	result, err := rc.db.SMembers(key).Result()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	return result, nil
 }
@@ -177,17 +178,21 @@ func (rc *_SetType) IsMember(key string, member string) (bool, error) {
 	rc.logger.DebugF(`Redis sismember. key: %s, member: %s`, key, member)
 	result, err := rc.db.SIsMember(key, member).Result()
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "")
 	}
 	return result, nil
 }
 
 // 移除集合中一个或多个成员
-func (rc *_SetType) Remove(key string, members ...interface{}) error {
+func (rc *_SetType) Remove(key string, members ...string) error {
 	rc.logger.DebugF(`Redis srem. key: %s, members: %v`, key, members)
-	_, err := rc.db.SRem(key, members...).Result()
+	rawMembers := make([]interface{}, 0)
+	for _, member := range members {
+		rawMembers = append(rawMembers, member)
+	}
+	_, err := rc.db.SRem(key, rawMembers...).Result()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -203,7 +208,7 @@ type _ListType struct {
 func (lc *_ListType) LPush(key string, value string) error {
 	lc.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %s`, key, value))
 	if err := lc.db.LPush(key, value).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -212,7 +217,7 @@ func (lc *_ListType) LPush(key string, value string) error {
 func (lc *_ListType) RPush(key string, value string) error {
 	lc.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %s`, key, value))
 	if err := lc.db.RPush(key, value).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -225,7 +230,7 @@ func (lc *_ListType) LPop(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return "", nil
 		}
-		return "", err
+		return "", errors.Wrap(err, "")
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis lpop. result: %s`, result))
 	return result, nil
@@ -239,7 +244,7 @@ func (lc *_ListType) RPop(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return "", nil
 		}
-		return "", err
+		return "", errors.Wrap(err, "")
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis rpop. result: %s`, result))
 	return result, nil
@@ -253,7 +258,7 @@ func (lc *_ListType) Len(key string) (uint64, error) {
 		if err.Error() == `redis: nil` {
 			return 0, nil
 		}
-		return 0, err
+		return 0, errors.Wrap(err, "")
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis llen. result: %d`, result))
 	return uint64(result), nil
@@ -267,7 +272,7 @@ func (lc *_ListType) Range(key string, start int64, stop int64) ([]string, error
 		if err.Error() == `redis: nil` {
 			return []string{}, nil
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis lrange. result: #%v`, result))
 	return result, nil
@@ -277,7 +282,7 @@ func (lc *_ListType) Range(key string, start int64, stop int64) ([]string, error
 func (lc *_ListType) ListAll(key string) ([]string, error) {
 	result, err := lc.Range(key, 0, -1)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	return result, nil
 }
@@ -286,7 +291,7 @@ func (lc *_ListType) ListAll(key string) ([]string, error) {
 func (lc *_ListType) Trim(key string, start int64, stop int64) error {
 	lc.logger.Debug(fmt.Sprintf(`redis ltrim. key: %s, start: %d, stop: %d`, key, start, stop))
 	if err := lc.db.LTrim(key, start, stop).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -302,7 +307,7 @@ type _StringClass struct {
 func (rc *_StringClass) Set(key string, value string, expiration time.Duration) error {
 	rc.logger.DebugF(`Redis set. key: %s, val: %s, expiration: %v`, key, value, expiration)
 	if err := rc.db.Set(key, value, expiration).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -312,7 +317,7 @@ func (rc *_StringClass) SetNx(key string, value string, expiration time.Duration
 	rc.logger.DebugF(`Redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration)
 	result := rc.db.SetNX(key, value, expiration)
 	if err := result.Err(); err != nil {
-		return false, err
+		return false, errors.Wrap(err, "")
 	}
 	return result.Val(), nil
 }
@@ -325,7 +330,7 @@ func (rc *_StringClass) Get(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
-		return ``, err
+		return ``, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis get. result: %s`, result)
 	return result, nil
@@ -345,7 +350,7 @@ func (rc *_OrderSetType) Add(key string, member string, score float64) error {
 		Score:  score,
 		Member: member,
 	}).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -354,7 +359,7 @@ func (rc *_OrderSetType) Add(key string, member string, score float64) error {
 func (rc *_OrderSetType) Remove(key string, member string) error {
 	rc.logger.DebugF(`Redis ZRem. key: %s, member: %s`, key, member)
 	if err := rc.db.ZRem(key, member).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -363,7 +368,7 @@ func (rc *_OrderSetType) Remove(key string, member string) error {
 func (rc *_OrderSetType) RemRangeByScore(key string, min string, max string) error {
 	rc.logger.DebugF(`Redis ZRemRangeByScore. key: %s, min: %s, max: %s`, key, min, max)
 	if err := rc.db.ZRemRangeByScore(key, min, max).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -372,7 +377,7 @@ func (rc *_OrderSetType) RemRangeByScore(key string, min string, max string) err
 func (rc *_OrderSetType) IncrBy(key string, member string, increment float64) error {
 	rc.logger.DebugF(`Redis ZIncrBy. key: %s, member: %s, increment: %f`, key, member, increment)
 	if err := rc.db.ZIncrBy(key, increment, member).Err(); err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -385,7 +390,7 @@ func (rc *_OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis ZRangeByScore. result: %+v`, result)
 	return result, nil
@@ -399,7 +404,7 @@ func (rc *_OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]str
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis ZRevRangeByScore. result: %+v`, result)
 	return result, nil
@@ -413,7 +418,7 @@ func (rc *_OrderSetType) RevRangeByScoreWithScores(key string, opt *redis.ZRange
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. result: %+v`, result)
 	return result, nil
@@ -427,7 +432,7 @@ func (rc *_OrderSetType) Score(key string, member string) (float64, error) {
 		if err.Error() == `redis: nil` {
 			return 0, nil
 		}
-		return 0, err
+		return 0, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis ZScore. result: %f`, result)
 	return result, nil
@@ -448,7 +453,7 @@ func (rc *_HashType) Get(key, field string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
-		return ``, err
+		return ``, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis hget. result: %s`, result)
 	return result, nil
@@ -462,27 +467,27 @@ func (rc *_HashType) GetAll(key string) (map[string]string, error) {
 		if err.Error() == `redis: nil` {
 			return map[string]string{}, nil
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	rc.logger.DebugF(`Redis hgetall. result: %s`, result)
 	return result, nil
 }
 
 // 将哈希表 key 中的字段 field 的值设为 value 。
-func (rc *_HashType) Set(key, field string, value interface{}) error {
+func (rc *_HashType) Set(key, field string, value string) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
 	err := rc.db.HSet(key, field, value).Err()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
 
-func (rc *_HashType) SetNX(key, field string, value interface{}) (bool, error) {
+func (rc *_HashType) SetNX(key, field string, value string) (bool, error) {
 	rc.logger.DebugF(`Redis hsetnx. key: %s, field: %s, value: %s`, key, field, value)
 	result, err := rc.db.HSetNX(key, field, value).Result()
 	if err != nil {
-		return false, err
+		return false, errors.Wrap(err, "")
 	}
 	return result, nil
 }
@@ -491,7 +496,7 @@ func (rc *_HashType) Del(key, field string) error {
 	rc.logger.DebugF(`Redis hdel. key: %s, field: %s`, key, field)
 	err := rc.db.HDel(key, field).Err()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -500,7 +505,7 @@ func (rc *_HashType) Len(key string) (int64, error) {
 	rc.logger.DebugF(`Redis hlen. key: %s`, key)
 	result, err := rc.db.HLen(key).Result()
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "")
 	}
 	return result, nil
 }
@@ -509,7 +514,7 @@ func (rc *_HashType) Fields(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis keys. key: %s`, key)
 	result, err := rc.db.HKeys(key).Result()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	return result, nil
 }
@@ -518,7 +523,7 @@ func (rc *_HashType) Values(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis hvals. key: %s`, key)
 	result, err := rc.db.HVals(key).Result()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "")
 	}
 	return result, nil
 }
