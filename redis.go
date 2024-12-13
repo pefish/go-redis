@@ -214,21 +214,23 @@ type _ListType struct {
 }
 
 // 将一个或多个值插入到列表头部
-func (lc *_ListType) LPush(key string, value string) error {
+func (lc *_ListType) LPush(key string, value string) (listLength_ uint64, err_ error) {
 	lc.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %s`, key, value))
-	if err := lc.db.LPush(key, value).Err(); err != nil {
-		return errors.Wrap(err, "")
+	len, err := lc.db.LPush(key, value).Result()
+	if err != nil {
+		return 0, errors.Wrap(err, "")
 	}
-	return nil
+	return uint64(len), nil
 }
 
 // 在列表中添加一个或多个值到列表尾部
-func (lc *_ListType) RPush(key string, value string) error {
+func (lc *_ListType) RPush(key string, value string) (listLength_ uint64, err_ error) {
 	lc.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %s`, key, value))
-	if err := lc.db.RPush(key, value).Err(); err != nil {
-		return errors.Wrap(err, "")
+	len, err := lc.db.RPush(key, value).Result()
+	if err != nil {
+		return 0, errors.Wrap(err, "")
 	}
-	return nil
+	return uint64(len), nil
 }
 
 // 移出并获取列表的第一个元素
