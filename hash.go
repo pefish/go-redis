@@ -11,6 +11,16 @@ type HashType struct {
 	logger i_logger.ILogger
 }
 
+func (t *HashType) ExistsKey(key, field string) (bool, error) {
+	t.logger.DebugF(`Redis hexists. key: %s, field: %s`, key, field)
+	result, err := t.db.HExists(key, field).Result()
+	if err != nil {
+		return false, errors.Wrap(err, "")
+	}
+	t.logger.DebugF(`Redis hexists. result: %s`, result)
+	return result, nil
+}
+
 // 获取存储在哈希表中指定字段的值。不存在就返回空字符串
 func (t *HashType) Get(key, field string) (string, error) {
 	t.logger.DebugF(`Redis hget. key: %s, field: %s`, key, field)
