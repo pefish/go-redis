@@ -41,6 +41,15 @@ func (rc *OrderSetType) RemRangeByScore(key string, min string, max string) erro
 	return nil
 }
 
+func (rc *OrderSetType) Count(key string, min string, max string) (int64, error) {
+	rc.logger.DebugF(`Redis Zcount. key: %s, min: %s, max: %s`, key, min, max)
+	r, err := rc.db.ZCount(key, min, max).Result()
+	if err != nil {
+		return 0, errors.Wrap(err, "")
+	}
+	return r, nil
+}
+
 // 有序集合中对指定成员的分数加上增量 increment
 func (rc *OrderSetType) IncrBy(key string, member string, increment float64) error {
 	rc.logger.DebugF(`Redis ZIncrBy. key: %s, member: %s, increment: %f`, key, member, increment)
