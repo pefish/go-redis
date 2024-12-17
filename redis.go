@@ -3,6 +3,7 @@ package go_redis
 import (
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/go-redis/redis"
 	i_logger "github.com/pefish/go-interface/i-logger"
@@ -20,6 +21,10 @@ type RedisType struct {
 	Hash     *HashType
 
 	logger i_logger.ILogger
+}
+
+type StringOrBytes interface {
+	~string | ~[]byte
 }
 
 func NewRedisInstance(logger i_logger.ILogger) *RedisType {
@@ -167,4 +172,19 @@ func (rc *RedisType) ReleaseLock(key string, value string) error {
 		return errors.Wrap(err, "")
 	}
 	return nil
+}
+
+// BytesToString converts byte slice to string.
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+// StringToBytes converts string to byte slice.
+func StringToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(
+		&struct {
+			string
+			Cap int
+		}{s, len(s)},
+	))
 }

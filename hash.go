@@ -52,7 +52,7 @@ func (rc *HashType) GetAll(key string) (map[string]string, error) {
 // 将哈希表 key 中的字段 field 的值设为 value 。
 func (rc *HashType) Set(key, field string, value string) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
-	err := rc.db.HSet(key, field, value).Err()
+	_, err := rc.db.HSet(key, field, value).Result()
 	if err != nil {
 		return errors.Wrap(err, "")
 	}
