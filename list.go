@@ -98,10 +98,11 @@ func (lc *ListType) ListAll(key string) ([]string, error) {
 	return result, nil
 }
 
-// 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除。
-func (lc *ListType) Trim(key string, start int64, stop int64) error {
+// 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素(索引从左边开始)，不在指定区间之内的元素都将被删除。
+func (lc *ListType) LTrim(key string, start int64, stop int64) error {
 	lc.logger.Debug(fmt.Sprintf(`redis ltrim. key: %s, start: %d, stop: %d`, key, start, stop))
-	if err := lc.db.LTrim(key, start, stop).Err(); err != nil {
+	_, err := lc.db.LTrim(key, start, stop).Result()
+	if err != nil {
 		return errors.Wrap(err, "")
 	}
 	return nil
