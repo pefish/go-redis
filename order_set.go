@@ -59,6 +59,32 @@ func (rc *OrderSetType) IncrBy(key string, member string, increment float64) err
 	return nil
 }
 
+// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值递增(从小到大)来排序。
+func (rc *OrderSetType) Range(key string, start int64, stop int64) ([]string, error) {
+	rc.logger.DebugF(`Redis ZRange. key: %s, start: %s, stop: %s`, key, start, stop)
+	result, err := rc.db.ZRange(key, start, stop).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "")
+	}
+	return result, nil
+}
+
+// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值递增(从大到小)来排序。
+func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string, error) {
+	rc.logger.DebugF(`Redis ZRevRange. key: %s, start: %s, stop: %s`, key, start, stop)
+	result, err := rc.db.ZRevRange(key, start, stop).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "")
+	}
+	return result, nil
+}
+
 // 通过分数返回有序集合指定区间内的成员, 分数从低到高排序, min 0, max -1 可取出全部
 func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
@@ -69,7 +95,6 @@ func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string,
 		}
 		return nil, errors.Wrap(err, "")
 	}
-	rc.logger.DebugF(`Redis ZRangeByScore. result: %+v`, result)
 	return result, nil
 }
 
@@ -83,7 +108,6 @@ func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]stri
 		}
 		return nil, errors.Wrap(err, "")
 	}
-	rc.logger.DebugF(`Redis ZRevRangeByScore. result: %+v`, result)
 	return result, nil
 }
 
@@ -97,7 +121,6 @@ func (rc *OrderSetType) RevRangeByScoreWithScores(key string, opt *redis.ZRangeB
 		}
 		return nil, errors.Wrap(err, "")
 	}
-	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. result: %+v`, result)
 	return result, nil
 }
 
@@ -111,6 +134,5 @@ func (rc *OrderSetType) Score(key string, member string) (float64, error) {
 		}
 		return 0, errors.Wrap(err, "")
 	}
-	rc.logger.DebugF(`Redis ZScore. result: %f`, result)
 	return result, nil
 }
