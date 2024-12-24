@@ -59,7 +59,7 @@ func (rc *OrderSetType) IncrBy(key string, member string, increment float64) err
 	return nil
 }
 
-// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值递增(从小到大)来排序。
+// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值从小到大来排序. start 0, end -1 可取出全部
 func (rc *OrderSetType) Range(key string, start int64, stop int64) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRange. key: %s, start: %s, stop: %s`, key, start, stop)
 	result, err := rc.db.ZRange(key, start, stop).Result()
@@ -72,7 +72,7 @@ func (rc *OrderSetType) Range(key string, start int64, stop int64) ([]string, er
 	return result, nil
 }
 
-// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值递增(从大到小)来排序。
+// 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值从大到小. start 0, end -1 可取出全部
 func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRevRange. key: %s, start: %s, stop: %s`, key, start, stop)
 	result, err := rc.db.ZRevRange(key, start, stop).Result()
@@ -85,7 +85,7 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 	return result, nil
 }
 
-// 通过分数返回有序集合指定区间内的成员, 分数从低到高排序, min 0, max -1 可取出全部
+// 通过分数返回有序集合指定区间内的成员, 分数从低到高排序
 func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
 	result, err := rc.db.ZRangeByScore(key, *opt).Result()
@@ -98,7 +98,7 @@ func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string,
 	return result, nil
 }
 
-// 返回有序集中指定分数区间内的成员, 分数从高到低排序, min 0, max -1 可取出全部
+// 返回有序集中指定分数区间内的成员, 分数从高到低排序
 func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
 	result, err := rc.db.ZRevRangeByScore(key, *opt).Result()
