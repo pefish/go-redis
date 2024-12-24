@@ -59,7 +59,7 @@ func (rc *OrderSetType) IncrBy(key string, member string, increment float64) err
 	return nil
 }
 
-// 通过分数返回有序集合指定区间内的成员
+// 通过分数返回有序集合指定区间内的成员, 分数从低到高排序, min 0, max -1 可取出全部
 func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
 	result, err := rc.db.ZRangeByScore(key, *opt).Result()
@@ -73,7 +73,7 @@ func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string,
 	return result, nil
 }
 
-// 返回有序集中指定分数区间内的成员，分数从高到低排序
+// 返回有序集中指定分数区间内的成员, 分数从高到低排序, min 0, max -1 可取出全部
 func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
 	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
 	result, err := rc.db.ZRevRangeByScore(key, *opt).Result()
