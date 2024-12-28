@@ -18,7 +18,7 @@ func (t *ListType) LPush(key string, value string) (listLength_ uint64, err_ err
 	t.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %s`, key, value))
 	len, err := t.db.LPush(key, value).Result()
 	if err != nil {
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }
@@ -28,7 +28,7 @@ func (lc *ListType) RPush(key string, value string) (listLength_ uint64, err_ er
 	lc.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %s`, key, value))
 	len, err := lc.db.RPush(key, value).Result()
 	if err != nil {
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }
@@ -41,7 +41,7 @@ func (lc *ListType) LPop(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return "", nil
 		}
-		return "", errors.Wrap(err, "<key: %s>")
+		return "", errors.Wrapf(err, "<key: %s>", key)
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis lpop. result: %s`, result))
 	return result, nil
@@ -55,7 +55,7 @@ func (lc *ListType) RPop(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return "", nil
 		}
-		return "", errors.Wrap(err, "<key: %s>")
+		return "", errors.Wrapf(err, "<key: %s>", key)
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis rpop. result: %s`, result))
 	return result, nil
@@ -69,7 +69,7 @@ func (lc *ListType) Len(key string) (uint64, error) {
 		if err.Error() == `redis: nil` {
 			return 0, nil
 		}
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis llen. result: %d`, result))
 	return uint64(result), nil
@@ -83,7 +83,7 @@ func (lc *ListType) Range(key string, start int64, stop int64) ([]string, error)
 		if err.Error() == `redis: nil` {
 			return []string{}, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	lc.logger.Debug(fmt.Sprintf(`redis lrange. result: #%v`, result))
 	return result, nil
@@ -93,7 +93,7 @@ func (lc *ListType) Range(key string, start int64, stop int64) ([]string, error)
 func (lc *ListType) ListAll(key string) ([]string, error) {
 	result, err := lc.Range(key, 0, -1)
 	if err != nil {
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -103,7 +103,7 @@ func (lc *ListType) LTrim(key string, start int64, stop int64) error {
 	lc.logger.Debug(fmt.Sprintf(`redis ltrim. key: %s, start: %d, stop: %d`, key, start, stop))
 	_, err := lc.db.LTrim(key, start, stop).Result()
 	if err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }

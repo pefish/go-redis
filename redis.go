@@ -68,7 +68,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 	})
 	_, err := rc.Db.Ping().Result()
 	if err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrap(err, "")
 	}
 	rc.logger.Info(`Redis connect succeed.`)
 
@@ -98,7 +98,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 func (rc *RedisType) Del(key string) error {
 	rc.logger.DebugF(`Redis del. key: %s`, key)
 	if err := rc.Db.Del(key).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -107,7 +107,7 @@ func (rc *RedisType) Exists(key string) (bool, error) {
 	rc.logger.DebugF(`Redis exists. key: %s`, key)
 	result, err := rc.Db.Exists(key).Result()
 	if err != nil {
-		return false, errors.Wrap(err, "<key: %s>")
+		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result == 1, nil
 }
@@ -116,7 +116,7 @@ func (rc *RedisType) Publish(channel string, message string) (receivedSubscriber
 	rc.logger.DebugF(`Redis publish. channel: %s, message: %s`, channel, message)
 	result, err := rc.Db.Publish(channel, message).Result()
 	if err != nil {
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<channel: %s>", channel)
 	}
 	return uint64(result), nil
 }
@@ -129,7 +129,7 @@ func (rc *RedisType) Subscribe(channel string) <-chan *redis.Message {
 func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 	rc.logger.DebugF(`Redis expire. key: %s, expiration: %v`, key, expiration)
 	if err := rc.Db.Expire(key, expiration).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -137,7 +137,7 @@ func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 func (rc *RedisType) GetLock(key string, value string, expiration time.Duration) (bool, error) {
 	result, err := rc.String.SetNx(key, value, expiration)
 	if err != nil {
-		return false, errors.Wrap(err, "<key: %s>")
+		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
 	if result {
 		// 自动续锁
@@ -169,7 +169,7 @@ func (rc *RedisType) ReleaseLock(key string, value string) error {
 	rc.logger.DebugF(`Redis eval. script: %s`, script)
 	result := rc.Db.Eval(script, []string{key}, []string{value})
 	if err := result.Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }

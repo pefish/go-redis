@@ -18,7 +18,7 @@ func (t *OrderSetType) Add(key string, member string, score float64) error {
 		Score:  score,
 		Member: member,
 	}).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -27,7 +27,7 @@ func (t *OrderSetType) Add(key string, member string, score float64) error {
 func (rc *OrderSetType) Remove(key string, member string) error {
 	rc.logger.DebugF(`Redis ZRem. key: %s, member: %s`, key, member)
 	if err := rc.db.ZRem(key, member).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -36,7 +36,7 @@ func (rc *OrderSetType) Remove(key string, member string) error {
 func (rc *OrderSetType) RemRangeByScore(key string, min string, max string) error {
 	rc.logger.DebugF(`Redis ZRemRangeByScore. key: %s, min: %s, max: %s`, key, min, max)
 	if err := rc.db.ZRemRangeByScore(key, min, max).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -45,7 +45,7 @@ func (rc *OrderSetType) Count(key string, min string, max string) (int64, error)
 	rc.logger.DebugF(`Redis Zcount. key: %s, min: %s, max: %s`, key, min, max)
 	r, err := rc.db.ZCount(key, min, max).Result()
 	if err != nil {
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return r, nil
 }
@@ -54,7 +54,7 @@ func (rc *OrderSetType) Count(key string, min string, max string) (int64, error)
 func (rc *OrderSetType) IncrBy(key string, member string, increment float64) error {
 	rc.logger.DebugF(`Redis ZIncrBy. key: %s, member: %s, increment: %f`, key, member, increment)
 	if err := rc.db.ZIncrBy(key, increment, member).Err(); err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -67,7 +67,7 @@ func (rc *OrderSetType) Range(key string, start int64, stop int64) ([]string, er
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -80,7 +80,7 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -93,7 +93,7 @@ func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string,
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -106,7 +106,7 @@ func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]stri
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -119,7 +119,7 @@ func (rc *OrderSetType) RevRangeByScoreWithScores(key string, opt *redis.ZRangeB
 		if err.Error() == `redis: nil` {
 			return nil, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -132,7 +132,7 @@ func (rc *OrderSetType) Score(key string, member string) (float64, error) {
 		if err.Error() == `redis: nil` {
 			return 0, nil
 		}
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }

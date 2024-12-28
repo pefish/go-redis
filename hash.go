@@ -15,7 +15,7 @@ func (t *HashType) ExistsKey(key, field string) (bool, error) {
 	t.logger.DebugF(`Redis hexists. key: %s, field: %s`, key, field)
 	result, err := t.db.HExists(key, field).Result()
 	if err != nil {
-		return false, errors.Wrap(err, "<key: %s>")
+		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
 	t.logger.DebugF(`Redis hexists. result: %s`, result)
 	return result, nil
@@ -29,7 +29,7 @@ func (t *HashType) Get(key, field string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
-		return ``, errors.Wrap(err, "<key: %s>")
+		return ``, errors.Wrapf(err, "<key: %s>", key)
 	}
 	t.logger.DebugF(`Redis hget. result: %s`, result)
 	return result, nil
@@ -43,7 +43,7 @@ func (rc *HashType) GetAll(key string) (map[string]string, error) {
 		if err.Error() == `redis: nil` {
 			return map[string]string{}, nil
 		}
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	rc.logger.DebugF(`Redis hgetall. result: %s`, result)
 	return result, nil
@@ -54,7 +54,7 @@ func (rc *HashType) Set(key, field string, value string) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
 	_, err := rc.db.HSet(key, field, value).Result()
 	if err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -63,7 +63,7 @@ func (rc *HashType) SetNX(key, field string, value string) (bool, error) {
 	rc.logger.DebugF(`Redis hsetnx. key: %s, field: %s, value: %s`, key, field, value)
 	result, err := rc.db.HSetNX(key, field, value).Result()
 	if err != nil {
-		return false, errors.Wrap(err, "<key: %s>")
+		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -72,7 +72,7 @@ func (rc *HashType) Del(key, field string) error {
 	rc.logger.DebugF(`Redis hdel. key: %s, field: %s`, key, field)
 	err := rc.db.HDel(key, field).Err()
 	if err != nil {
-		return errors.Wrap(err, "<key: %s>")
+		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
@@ -81,7 +81,7 @@ func (rc *HashType) Len(key string) (int64, error) {
 	rc.logger.DebugF(`Redis hlen. key: %s`, key)
 	result, err := rc.db.HLen(key).Result()
 	if err != nil {
-		return 0, errors.Wrap(err, "<key: %s>")
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -90,7 +90,7 @@ func (rc *HashType) Fields(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis keys. key: %s`, key)
 	result, err := rc.db.HKeys(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
@@ -99,7 +99,7 @@ func (rc *HashType) Values(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis hvals. key: %s`, key)
 	result, err := rc.db.HVals(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "<key: %s>")
+		return nil, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return result, nil
 }
