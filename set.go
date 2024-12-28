@@ -15,7 +15,7 @@ type SetType struct {
 func (t *SetType) Add(key string, member string) error {
 	t.logger.DebugF(`Redis sadd. key: %s, member: %s`, key, member)
 	if err := t.db.SAdd(key, member).Err(); err != nil {
-		return errors.Wrap(err, "")
+		return errors.Wrap(err, "<key: %s>")
 	}
 	return nil
 }
@@ -25,7 +25,7 @@ func (rc *SetType) Members(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis smembers. key: %s`, key)
 	result, err := rc.db.SMembers(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "")
+		return nil, errors.Wrap(err, "<key: %s>")
 	}
 	return result, nil
 }
@@ -35,7 +35,7 @@ func (rc *SetType) IsMember(key string, member string) (bool, error) {
 	rc.logger.DebugF(`Redis sismember. key: %s, member: %s`, key, member)
 	result, err := rc.db.SIsMember(key, member).Result()
 	if err != nil {
-		return false, errors.Wrap(err, "")
+		return false, errors.Wrap(err, "<key: %s>")
 	}
 	return result, nil
 }
@@ -49,7 +49,7 @@ func (rc *SetType) Remove(key string, members ...string) error {
 	}
 	_, err := rc.db.SRem(key, rawMembers...).Result()
 	if err != nil {
-		return errors.Wrap(err, "")
+		return errors.Wrap(err, "<key: %s>")
 	}
 	return nil
 }

@@ -17,7 +17,7 @@ type StringClass struct {
 func (t *StringClass) Set(key string, value string, expiration time.Duration) error {
 	t.logger.DebugF(`Redis set. key: %s, val: %s, expiration: %v`, key, value, expiration)
 	if err := t.db.Set(key, value, expiration).Err(); err != nil {
-		return errors.Wrap(err, "")
+		return errors.Wrap(err, "<key: %s>")
 	}
 	return nil
 }
@@ -27,7 +27,7 @@ func (rc *StringClass) SetNx(key string, value string, expiration time.Duration)
 	rc.logger.DebugF(`Redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration)
 	result := rc.db.SetNX(key, value, expiration)
 	if err := result.Err(); err != nil {
-		return false, errors.Wrap(err, "")
+		return false, errors.Wrap(err, "<key: %s>")
 	}
 	return result.Val(), nil
 }
@@ -40,7 +40,7 @@ func (rc *StringClass) Get(key string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
-		return ``, errors.Wrap(err, "")
+		return ``, errors.Wrap(err, "<key: %s>")
 	}
 	rc.logger.DebugF(`Redis get. result: %s`, result)
 	return result, nil
