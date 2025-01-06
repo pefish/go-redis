@@ -31,7 +31,7 @@ func (t *HashType) Get(key, field string) (string, error) {
 		if err.Error() == `redis: nil` {
 			return ``, nil
 		}
-		return ``, errors.Wrapf(err, "<key: %s>", key)
+		return ``, errors.Wrapf(err, "<key: %s, field: %s>", key, field)
 	}
 	t.logger.DebugF(`Redis hget. result: %s`, result)
 	return result, nil
@@ -44,7 +44,7 @@ func (t *HashType) GetUint64(key, field string) (uint64, error) {
 	}
 	r, err := strconv.ParseUint(resultStr, 10, 64)
 	if err != nil {
-		return 0, errors.Wrapf(err, "<key: %s> string to uint64 failed.", key)
+		return 0, errors.Wrapf(err, "<key: %s, field: %s> string to uint64 failed.", key, field)
 	}
 	return r, nil
 }
@@ -68,7 +68,7 @@ func (rc *HashType) Set(key, field, value string) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
 	_, err := rc.db.HSet(key, field, value).Result()
 	if err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+		return errors.Wrapf(err, "<key: %s, field: %s>", key, field)
 	}
 	return nil
 }
@@ -81,7 +81,7 @@ func (rc *HashType) SetNX(key, field string, value string) (bool, error) {
 	rc.logger.DebugF(`Redis hsetnx. key: %s, field: %s, value: %s`, key, field, value)
 	result, err := rc.db.HSetNX(key, field, value).Result()
 	if err != nil {
-		return false, errors.Wrapf(err, "<key: %s>", key)
+		return false, errors.Wrapf(err, "<key: %s, field: %s>", key, field)
 	}
 	return result, nil
 }
@@ -90,7 +90,7 @@ func (rc *HashType) Del(key, field string) error {
 	rc.logger.DebugF(`Redis hdel. key: %s, field: %s`, key, field)
 	err := rc.db.HDel(key, field).Err()
 	if err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+		return errors.Wrapf(err, "<key: %s, field: %s>", key, field)
 	}
 	return nil
 }
