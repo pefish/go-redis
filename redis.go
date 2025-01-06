@@ -16,7 +16,7 @@ type RedisType struct {
 	Db       *redis.Client
 	Set      *SetType
 	List     *ListType
-	String   *StringClass
+	String   *StringType
 	OrderSet *OrderSetType
 	Hash     *HashType
 
@@ -80,7 +80,7 @@ func (rc *RedisType) Connect(configuration *Configuration) error {
 		db:     rc.Db,
 		logger: rc.logger,
 	}
-	rc.String = &StringClass{
+	rc.String = &StringType{
 		db:     rc.Db,
 		logger: rc.logger,
 	}

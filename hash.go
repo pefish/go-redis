@@ -1,6 +1,8 @@
 package go_redis
 
 import (
+	"strconv"
+
 	"github.com/go-redis/redis"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	"github.com/pkg/errors"
@@ -35,6 +37,18 @@ func (t *HashType) Get(key, field string) (string, error) {
 	return result, nil
 }
 
+func (t *HashType) GetUint64(key, field string) (uint64, error) {
+	resultStr, err := t.Get(key, field)
+	if err != nil {
+		return 0, err
+	}
+	r, err := strconv.ParseUint(resultStr, 10, 64)
+	if err != nil {
+		return 0, errors.Wrapf(err, "<key: %s> string to uint64 failed.", key)
+	}
+	return r, nil
+}
+
 // 获取在哈希表中指定 key 的所有字段和值
 func (rc *HashType) GetAll(key string) (map[string]string, error) {
 	rc.logger.DebugF(`Redis hgetall. key: %s`, key)
@@ -50,13 +64,17 @@ func (rc *HashType) GetAll(key string) (map[string]string, error) {
 }
 
 // 将哈希表 key 中的字段 field 的值设为 value 。
-func (rc *HashType) Set(key, field string, value string) error {
+func (rc *HashType) Set(key, field, value string) error {
 	rc.logger.DebugF(`Redis hset. key: %s, field: %s, value: %s`, key, field, value)
 	_, err := rc.db.HSet(key, field, value).Result()
 	if err != nil {
 		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
+}
+
+func (t *HashType) SetUint64(key, field string, value uint64) error {
+	return t.Set(key, field, strconv.FormatUint(value, 10))
 }
 
 func (rc *HashType) SetNX(key, field string, value string) (bool, error) {
