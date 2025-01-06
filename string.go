@@ -65,3 +65,18 @@ func (t *StringType) GetUint64(key string) (uint64, error) {
 	}
 	return r, nil
 }
+
+func (t *StringType) GetFloat64(key string) (float64, error) {
+	resultStr, err := t.Get(key)
+	if err != nil {
+		return 0, err
+	}
+	if resultStr == "" {
+		return 0, nil
+	}
+	r, err := strconv.ParseFloat(resultStr, 64)
+	if err != nil {
+		return 0, errors.Wrapf(err, "<key: %s> string to float64 failed.", key)
+	}
+	return r, nil
+}

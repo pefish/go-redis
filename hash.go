@@ -53,6 +53,22 @@ func (t *HashType) GetUint64(key, field string) (uint64, error) {
 	return r, nil
 }
 
+func (t *HashType) GetFloat64(key, field string) (float64, error) {
+	resultStr, err := t.Get(key, field)
+	if err != nil {
+		return 0, err
+	}
+	if resultStr == "" {
+		return 0, nil
+	}
+
+	r, err := strconv.ParseFloat(resultStr, 64)
+	if err != nil {
+		return 0, errors.Wrapf(err, "<key: %s, field: %s> string to float64 failed.", key, field)
+	}
+	return r, nil
+}
+
 // 获取在哈希表中指定 key 的所有字段和值
 func (rc *HashType) GetAll(key string) (map[string]string, error) {
 	rc.logger.DebugF(`Redis hgetall. key: %s`, key)
