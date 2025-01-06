@@ -56,6 +56,9 @@ func (t *StringType) GetUint64(key string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+	if resultStr == "" {
+		return 0, nil
+	}
 	r, err := strconv.ParseUint(resultStr, 10, 64)
 	if err != nil {
 		return 0, errors.Wrapf(err, "<key: %s> string to uint64 failed.", key)

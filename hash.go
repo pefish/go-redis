@@ -37,10 +37,14 @@ func (t *HashType) Get(key, field string) (string, error) {
 	return result, nil
 }
 
+// 如果是空，返回 0
 func (t *HashType) GetUint64(key, field string) (uint64, error) {
 	resultStr, err := t.Get(key, field)
 	if err != nil {
 		return 0, err
+	}
+	if resultStr == "" {
+		return 0, nil
 	}
 	r, err := strconv.ParseUint(resultStr, 10, 64)
 	if err != nil {
