@@ -13,7 +13,7 @@ type HashType struct {
 	logger i_logger.ILogger
 }
 
-func (t *HashType) ExistsKey(key, field string) (bool, error) {
+func (t *HashType) Exists(key, field string) (bool, error) {
 	t.logger.DebugF(`Redis hexists. key: %s, field: %s`, key, field)
 	result, err := t.db.HExists(key, field).Result()
 	if err != nil {
