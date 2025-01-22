@@ -1,6 +1,8 @@
 package go_redis
 
 import (
+	"strconv"
+
 	"github.com/go-redis/redis"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	"github.com/pkg/errors"
@@ -9,6 +11,11 @@ import (
 type OrderSetType struct {
 	db     *redis.Client
 	logger i_logger.ILogger
+}
+
+type RangeBy struct {
+	Min, Max      float64
+	Offset, Count int64
 }
 
 // 向有序集合添加一个或多个成员，或者更新已存在成员的分数
@@ -86,9 +93,14 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 }
 
 // 通过分数返回有序集合指定区间内(左右都包含)的成员, 分数从低到高排序
-func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
-	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
-	result, err := rc.db.ZRangeByScore(key, *opt).Result()
+func (rc *OrderSetType) RangeByScore(key string, rangeBy RangeBy) ([]string, error) {
+	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	result, err := rc.db.ZRangeByScore(key, redis.ZRangeBy{
+		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
+		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Offset: rangeBy.Offset,
+		Count:  rangeBy.Count,
+	}).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return nil, nil
@@ -99,9 +111,14 @@ func (rc *OrderSetType) RangeByScore(key string, opt *redis.ZRangeBy) ([]string,
 }
 
 // 返回有序集中指定分数区间内(左右都包含)的成员, 分数从高到低排序
-func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]string, error) {
-	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
-	result, err := rc.db.ZRevRangeByScore(key, *opt).Result()
+func (rc *OrderSetType) RevRangeByScore(key string, rangeBy RangeBy) ([]string, error) {
+	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	result, err := rc.db.ZRevRangeByScore(key, redis.ZRangeBy{
+		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
+		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Offset: rangeBy.Offset,
+		Count:  rangeBy.Count,
+	}).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return nil, nil
@@ -112,9 +129,14 @@ func (rc *OrderSetType) RevRangeByScore(key string, opt *redis.ZRangeBy) ([]stri
 }
 
 // 返回有序集中指定分数区间内的成员以及分数，分数从高到低排序
-func (rc *OrderSetType) RevRangeByScoreWithScores(key string, opt *redis.ZRangeBy) ([]redis.Z, error) {
-	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. key: %s, min: %s, max: %s`, key, opt.Min, opt.Max)
-	result, err := rc.db.ZRevRangeByScoreWithScores(key, *opt).Result()
+func (rc *OrderSetType) RevRangeByScoreWithScores(key string, rangeBy RangeBy) ([]redis.Z, error) {
+	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	result, err := rc.db.ZRevRangeByScoreWithScores(key, redis.ZRangeBy{
+		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
+		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Offset: rangeBy.Offset,
+		Count:  rangeBy.Count,
+	}).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return nil, nil
