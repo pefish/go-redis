@@ -48,9 +48,20 @@ func (rc *OrderSetType) RemRangeByScore(key string, min string, max string) erro
 	return nil
 }
 
+// 统计分数范围内的元素个数。-inf 是无穷小，+inf 是无穷大
 func (rc *OrderSetType) Count(key string, min string, max string) (int64, error) {
 	rc.logger.DebugF(`Redis Zcount. key: %s, min: %s, max: %s`, key, min, max)
 	r, err := rc.db.ZCount(key, min, max).Result()
+	if err != nil {
+		return 0, errors.Wrapf(err, "<key: %s>", key)
+	}
+	return r, nil
+}
+
+// 得到元素总个数
+func (rc *OrderSetType) TotalCount(key string) (int64, error) {
+	rc.logger.DebugF(`Redis ZCard. key: %s`, key)
+	r, err := rc.db.ZCard(key).Result()
 	if err != nil {
 		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
