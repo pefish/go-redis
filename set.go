@@ -20,7 +20,7 @@ func (t *SetType) Add(key string, member string) error {
 	return nil
 }
 
-// 返回集合中的所有成员
+// 返回集合中的所有成员，key 不存在时返回 nil,nil
 func (rc *SetType) Members(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis smembers. key: %s`, key)
 	result, err := rc.db.SMembers(key).Result()

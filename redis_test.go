@@ -25,18 +25,18 @@ func TestRedisClass_ConnectWithConfiguration(t *testing.T) {
 }
 
 func Test_StringClass_SetNx(t *testing.T) {
-	bool_, err := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
+	bool_, err := RedisInstance.String.SetNX(`test_str`, `haha`, 2*time.Second)
 	go_test_.Equal(t, nil, err)
 	if !bool_ {
 		t.Error()
 	}
-	bool3_, err := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
+	bool3_, err := RedisInstance.String.SetNX(`test_str`, `haha`, 2*time.Second)
 	go_test_.Equal(t, nil, err)
 	if bool3_ {
 		t.Error()
 	}
 	time.Sleep(3 * time.Second)
-	bool1_, err := RedisInstance.String.SetNx(`test_str`, `haha`, 2*time.Second)
+	bool1_, err := RedisInstance.String.SetNX(`test_str`, `haha`, 2*time.Second)
 	go_test_.Equal(t, nil, err)
 	if !bool1_ {
 		t.Error()

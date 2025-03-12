@@ -135,7 +135,7 @@ func (rc *RedisType) Expire(key string, expiration time.Duration) error {
 }
 
 func (rc *RedisType) GetLock(key string, value string, expiration time.Duration) (bool, error) {
-	result, err := rc.String.SetNx(key, value, expiration)
+	result, err := rc.String.SetNX(key, value, expiration)
 	if err != nil {
 		return false, errors.Wrapf(err, "<key: %s>", key)
 	}

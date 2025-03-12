@@ -48,7 +48,7 @@ func (t *HashType) GetUint64(key, field string) (uint64, error) {
 	}
 	r, err := strconv.ParseUint(resultStr, 10, 64)
 	if err != nil {
-		return 0, errors.Wrapf(err, "<key: %s, field: %s> string to uint64 failed.", key, field)
+		return 0, errors.Wrapf(err, "<key: %s, field: %s> string<%s> to uint64 failed.", key, field, resultStr)
 	}
 	return r, nil
 }

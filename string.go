@@ -28,7 +28,7 @@ func (t *StringType) SetUint64(key string, value uint64, expiration time.Duratio
 }
 
 // 只有在 key 不存在时设置 key 的值，设置成功返回 true。
-func (t *StringType) SetNx(key string, value string, expiration time.Duration) (bool, error) {
+func (t *StringType) SetNX(key string, value string, expiration time.Duration) (bool, error) {
 	t.logger.DebugF(`Redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration)
 	result := t.db.SetNX(key, value, expiration)
 	if err := result.Err(); err != nil {
@@ -61,7 +61,7 @@ func (t *StringType) GetUint64(key string) (uint64, error) {
 	}
 	r, err := strconv.ParseUint(resultStr, 10, 64)
 	if err != nil {
-		return 0, errors.Wrapf(err, "<key: %s> string to uint64 failed.", key)
+		return 0, errors.Wrapf(err, "<key: %s> string<%s> to uint64 failed.", key, resultStr)
 	}
 	return r, nil
 }
