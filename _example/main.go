@@ -25,24 +25,12 @@ func do() error {
 		return err
 	}
 
-	key := "sdfgadfg"
-	r, err := instance.List.ListAllUint64(key)
-	if err != nil {
-		return err
-	}
-	if r == nil {
-		instance.List.LPushUint64(key, 111)
-	}
-	instance.List.SetUint64(key, 0, 222)
-	r, err = instance.List.ListAllUint64(key)
+	key := "sdfgadfg11"
+	// instance.Hash.SetUint64(key, "111", 111)
+	r, err := instance.Hash.GetUint64(key, "111")
 	if err != nil {
 		return err
 	}
 	fmt.Println(r)
-
-	err = instance.List.SetUint64(key, 1, 333)
-	if err != nil {
-		return err
-	}
 	return nil
 }

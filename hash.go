@@ -37,7 +37,7 @@ func (t *HashType) Get(key, field string) (string, error) {
 	return result, nil
 }
 
-// 如果是空，返回 0
+// 如果 key/field 不存在或者内容是空字符串，都返回 0
 func (t *HashType) GetUint64(key, field string) (uint64, error) {
 	resultStr, err := t.Get(key, field)
 	if err != nil {
