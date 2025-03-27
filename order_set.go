@@ -1,6 +1,7 @@
 package go_redis
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/go-redis/redis"
@@ -14,7 +15,7 @@ type OrderSetType struct {
 }
 
 type RangeBy struct {
-	Min, Max      float64
+	Min, Max      float64 // math.MaxFloat64 表示 +inf，-1 表示 -inf
 	Offset, Count int64
 }
 
@@ -39,19 +40,35 @@ func (rc *OrderSetType) Remove(key string, member string) error {
 	return nil
 }
 
-// 移除有序集合中给定的分数区间的所有成员
-func (rc *OrderSetType) RemRangeByScore(key string, min string, max string) error {
-	rc.logger.DebugF(`Redis ZRemRangeByScore. key: %s, min: %s, max: %s`, key, min, max)
-	if err := rc.db.ZRemRangeByScore(key, min, max).Err(); err != nil {
+// 移除有序集合中给定的分数区间的所有成员，math.MaxFloat64 表示 +inf，-1 表示 -inf
+func (rc *OrderSetType) RemRangeByScore(key string, min float64, max float64) error {
+	minStr := strconv.FormatFloat(min, 'f', -1, 64)
+	if min == -1 {
+		minStr = "-inf"
+	}
+	maxStr := strconv.FormatFloat(max, 'f', -1, 64)
+	if max == math.MaxFloat64 {
+		maxStr = "+inf"
+	}
+	rc.logger.DebugF(`Redis ZRemRangeByScore. key: %s, min: %s, max: %s`, key, minStr, maxStr)
+	if err := rc.db.ZRemRangeByScore(key, minStr, maxStr).Err(); err != nil {
 		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
 }
 
-// 统计分数范围内的元素个数。-inf 是无穷小，+inf 是无穷大
-func (rc *OrderSetType) Count(key string, min string, max string) (int64, error) {
-	rc.logger.DebugF(`Redis Zcount. key: %s, min: %s, max: %s`, key, min, max)
-	r, err := rc.db.ZCount(key, min, max).Result()
+// 统计分数范围内的元素个数
+func (rc *OrderSetType) Count(key string, min float64, max float64) (int64, error) {
+	minStr := strconv.FormatFloat(min, 'f', -1, 64)
+	if min == -1 {
+		minStr = "-inf"
+	}
+	maxStr := strconv.FormatFloat(max, 'f', -1, 64)
+	if max == math.MaxFloat64 {
+		maxStr = "+inf"
+	}
+	rc.logger.DebugF(`Redis Zcount. key: %s, min: %s, max: %s`, key, minStr, maxStr)
+	r, err := rc.db.ZCount(key, minStr, maxStr).Result()
 	if err != nil {
 		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
@@ -105,10 +122,19 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 
 // 通过分数返回有序集合指定区间内(左右都包含)的成员, 分数从低到高排序
 func (rc *OrderSetType) RangeByScore(key string, rangeBy RangeBy) ([]string, error) {
-	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	minStr := strconv.FormatFloat(rangeBy.Min, 'f', -1, 64)
+	if rangeBy.Min == -1 {
+		minStr = "-inf"
+	}
+	maxStr := strconv.FormatFloat(rangeBy.Max, 'f', -1, 64)
+	if rangeBy.Max == math.MaxFloat64 {
+		maxStr = "+inf"
+	}
+
+	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %f, max: %f`, key, minStr, maxStr)
 	result, err := rc.db.ZRangeByScore(key, redis.ZRangeBy{
-		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
-		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Min:    minStr,
+		Max:    maxStr,
 		Offset: rangeBy.Offset,
 		Count:  rangeBy.Count,
 	}).Result()
@@ -123,10 +149,19 @@ func (rc *OrderSetType) RangeByScore(key string, rangeBy RangeBy) ([]string, err
 
 // 返回有序集中指定分数区间内(左右都包含)的成员, 分数从高到低排序
 func (rc *OrderSetType) RevRangeByScore(key string, rangeBy RangeBy) ([]string, error) {
-	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	minStr := strconv.FormatFloat(rangeBy.Min, 'f', -1, 64)
+	if rangeBy.Min == -1 {
+		minStr = "-inf"
+	}
+	maxStr := strconv.FormatFloat(rangeBy.Max, 'f', -1, 64)
+	if rangeBy.Max == math.MaxFloat64 {
+		maxStr = "+inf"
+	}
+
+	rc.logger.DebugF(`Redis ZRevRangeByScore. key: %s, min: %f, max: %f`, key, minStr, maxStr)
 	result, err := rc.db.ZRevRangeByScore(key, redis.ZRangeBy{
-		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
-		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Min:    minStr,
+		Max:    maxStr,
 		Offset: rangeBy.Offset,
 		Count:  rangeBy.Count,
 	}).Result()
@@ -141,10 +176,18 @@ func (rc *OrderSetType) RevRangeByScore(key string, rangeBy RangeBy) ([]string, 
 
 // 返回有序集中指定分数区间内的成员以及分数，分数从高到低排序
 func (rc *OrderSetType) RevRangeByScoreWithScores(key string, rangeBy RangeBy) ([]redis.Z, error) {
-	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. key: %s, min: %f, max: %f`, key, rangeBy.Min, rangeBy.Max)
+	minStr := strconv.FormatFloat(rangeBy.Min, 'f', -1, 64)
+	if rangeBy.Min == -1 {
+		minStr = "-inf"
+	}
+	maxStr := strconv.FormatFloat(rangeBy.Max, 'f', -1, 64)
+	if rangeBy.Max == math.MaxFloat64 {
+		maxStr = "+inf"
+	}
+	rc.logger.DebugF(`Redis ZRevRangeByScoreWithScores. key: %s, min: %f, max: %f`, key, minStr, maxStr)
 	result, err := rc.db.ZRevRangeByScoreWithScores(key, redis.ZRangeBy{
-		Min:    strconv.FormatFloat(rangeBy.Min, 'f', -1, 64),
-		Max:    strconv.FormatFloat(rangeBy.Max, 'f', -1, 64),
+		Min:    minStr,
+		Max:    maxStr,
 		Offset: rangeBy.Offset,
 		Count:  rangeBy.Count,
 	}).Result()
