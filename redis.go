@@ -39,13 +39,13 @@ type Configuration struct {
 	Password string
 }
 
-func (rc *RedisType) Close() {
-	if rc.Db != nil {
-		err := rc.Db.Close()
+func (t *RedisType) Close() {
+	if t.Db != nil {
+		err := t.Db.Close()
 		if err != nil {
-			rc.logger.Error(err)
+			t.logger.Error(err)
 		} else {
-			rc.logger.Info(`Redis close succeed.`)
+			t.logger.Info(`Redis close succeed.`)
 		}
 	}
 }

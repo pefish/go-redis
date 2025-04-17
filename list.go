@@ -15,37 +15,55 @@ type ListType struct {
 }
 
 // 将一个或多个值插入到列表头部
-func (t *ListType) LPush(key string, value string) (listLength_ uint64, err_ error) {
-	t.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %s`, key, value))
-	len, err := t.db.LPush(key, value).Result()
+func (t *ListType) LPush(key string, values ...string) (listLength_ uint64, err_ error) {
+	t.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %#v`, key, values))
+	valuesInterface := make([]any, 0)
+	for _, v := range values {
+		valuesInterface = append(valuesInterface, v)
+	}
+	len, err := t.db.LPush(key, valuesInterface...).Result()
 	if err != nil {
 		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }
 
-func (t *ListType) LPushUint64(key string, value uint64) (listLength_ uint64, err_ error) {
-	len, err := t.LPush(key, strconv.FormatUint(value, 10))
+func (t *ListType) LPushUint64(key string, values ...uint64) (listLength_ uint64, err_ error) {
+	t.logger.Debug(fmt.Sprintf(`redis lpush. key: %s, val: %#v`, key, values))
+	valuesInterface := make([]any, 0)
+	for _, v := range values {
+		valuesInterface = append(valuesInterface, v)
+	}
+	len, err := t.db.LPush(key, valuesInterface...).Result()
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }
 
 // 在列表中添加一个或多个值到列表尾部
-func (lc *ListType) RPush(key string, value string) (listLength_ uint64, err_ error) {
-	lc.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %s`, key, value))
-	len, err := lc.db.RPush(key, value).Result()
+func (t *ListType) RPush(key string, values ...string) (listLength_ uint64, err_ error) {
+	t.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %#v`, key, values))
+	valuesInterface := make([]any, 0)
+	for _, v := range values {
+		valuesInterface = append(valuesInterface, v)
+	}
+	len, err := t.db.RPush(key, valuesInterface...).Result()
 	if err != nil {
 		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }
 
-func (t *ListType) RPushUint64(key string, value uint64) (listLength_ uint64, err_ error) {
-	len, err := t.RPush(key, strconv.FormatUint(value, 10))
+func (t *ListType) RPushUint64(key string, values ...uint64) (listLength_ uint64, err_ error) {
+	t.logger.Debug(fmt.Sprintf(`redis rpush. key: %s, val: %#v`, key, values))
+	valuesInterface := make([]any, 0)
+	for _, v := range values {
+		valuesInterface = append(valuesInterface, v)
+	}
+	len, err := t.db.RPush(key, valuesInterface...).Result()
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
 	return uint64(len), nil
 }

@@ -41,13 +41,13 @@ func (rc *SetType) IsMember(key string, member string) (bool, error) {
 }
 
 // 移除集合中一个或多个成员
-func (rc *SetType) Remove(key string, members ...string) error {
-	rc.logger.DebugF(`Redis srem. key: %s, members: %v`, key, members)
+func (t *SetType) Remove(key string, members ...string) error {
+	t.logger.DebugF(`Redis srem. key: %s, members: %v`, key, members)
 	rawMembers := make([]interface{}, 0)
 	for _, member := range members {
 		rawMembers = append(rawMembers, member)
 	}
-	_, err := rc.db.SRem(key, rawMembers...).Result()
+	_, err := t.db.SRem(key, rawMembers...).Result()
 	if err != nil {
 		return errors.Wrapf(err, "<key: %s>", key)
 	}
