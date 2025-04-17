@@ -93,6 +93,19 @@ func (rc *HashType) Set(key, field, value string) error {
 	return nil
 }
 
+func (rc *HashType) SetMulti(key string, datas map[string]string) error {
+	rc.logger.DebugF(`Redis hmset. key: %s, datas: %#v`, key, datas)
+	datasInterface := make(map[string]any, 0)
+	for k, v := range datas {
+		datasInterface[k] = v
+	}
+	_, err := rc.db.HMSet(key, datasInterface).Result()
+	if err != nil {
+		return errors.Wrapf(err, "<key: %s, datas: %#v>", key, datas)
+	}
+	return nil
+}
+
 func (t *HashType) SetUint64(key, field string, value uint64) error {
 	return t.Set(key, field, strconv.FormatUint(value, 10))
 }
