@@ -1,12 +1,13 @@
 package go_redis
 
 import (
+	"context"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis"
 	i_logger "github.com/pefish/go-interface/i-logger"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
 type StringType struct {
@@ -17,7 +18,7 @@ type StringType struct {
 // 设置指定 key 的值。
 func (t *StringType) Set(key string, value string, expiration time.Duration) error {
 	t.logger.DebugF(`Redis set. key: %s, val: %s, expiration: %v`, key, value, expiration)
-	if err := t.db.Set(key, value, expiration).Err(); err != nil {
+	if err := t.db.Set(context.Background(), key, value, expiration).Err(); err != nil {
 		return errors.Wrapf(err, "<key: %s>", key)
 	}
 	return nil
@@ -30,7 +31,7 @@ func (t *StringType) SetUint64(key string, value uint64, expiration time.Duratio
 // 只有在 key 不存在时设置 key 的值，设置成功返回 true。
 func (t *StringType) SetNX(key string, value string, expiration time.Duration) (bool, error) {
 	t.logger.DebugF(`Redis setnx. key: %s, val: %s, expiration: %v`, key, value, expiration)
-	result := t.db.SetNX(key, value, expiration)
+	result := t.db.SetNX(context.Background(), key, value, expiration)
 	if err := result.Err(); err != nil {
 		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
@@ -40,7 +41,7 @@ func (t *StringType) SetNX(key string, value string, expiration time.Duration) (
 // 获取指定 key 的值。
 func (t *StringType) Get(key string) (string, error) {
 	t.logger.DebugF(`Redis get. key: %s`, key)
-	result, err := t.db.Get(key).Result()
+	result, err := t.db.Get(context.Background(), key).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
 			return ``, nil
