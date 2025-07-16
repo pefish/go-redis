@@ -133,13 +133,13 @@ func (rc *HashType) SetNX(key, field string, value string) (bool, error) {
 	return result, nil
 }
 
-func (rc *HashType) Del(key, field string) error {
+func (rc *HashType) Del(key, field string) (bool, error) {
 	rc.logger.DebugF(`Redis hdel. key: %s, field: %s`, key, field)
-	err := rc.db.HDel(context.Background(), key, field).Err()
-	if err != nil {
-		return errors.Wrapf(err, "<key: %s, field: %s>", key, field)
+	result := rc.db.HDel(context.Background(), key, field)
+	if result.Err() != nil {
+		return false, errors.Wrapf(result.Err(), "<key: %s, field: %s>", key, field)
 	}
-	return nil
+	return result.Val() == 1, nil
 }
 
 func (rc *HashType) Len(key string) (int64, error) {

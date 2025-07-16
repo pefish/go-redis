@@ -96,12 +96,13 @@ func (t *RedisType) Connect(configuration *Configuration) error {
 	return nil
 }
 
-func (rc *RedisType) Del(key string) error {
+func (rc *RedisType) Del(key string) (bool, error) {
 	rc.logger.DebugF(`Redis del. key: %s`, key)
-	if err := rc.Db.Del(context.Background(), key).Err(); err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+	result := rc.Db.Del(context.Background(), key)
+	if result.Err() != nil {
+		return false, errors.Wrapf(result.Err(), "<key: %s>", key)
 	}
-	return nil
+	return result.Val() == 1, nil
 }
 
 func (rc *RedisType) Exists(key string) (bool, error) {
