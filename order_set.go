@@ -97,7 +97,7 @@ func (rc *OrderSetType) IncrBy(key string, member string, increment float64) err
 
 // 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值从小到大来排序. start 0, end -1 可取出全部
 func (rc *OrderSetType) Range(key string, start int64, stop int64) ([]string, error) {
-	rc.logger.DebugF(`Redis ZRange. key: %s, start: %s, stop: %s`, key, start, stop)
+	rc.logger.DebugF(`Redis ZRange. key: %s, start: %d, stop: %d`, key, start, stop)
 	result, err := rc.db.ZRange(context.Background(), key, start, stop).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
@@ -132,7 +132,7 @@ func (rc *OrderSetType) RangeByScore(key string, rangeBy RangeBy) ([]string, err
 		maxStr = "+inf"
 	}
 
-	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %f, max: %f`, key, minStr, maxStr)
+	rc.logger.DebugF(`Redis ZRangeByScore. key: %s, min: %s, max: %s`, key, minStr, maxStr)
 	result, err := rc.db.ZRangeByScore(context.Background(), key, &redis.ZRangeBy{
 		Min:    minStr,
 		Max:    maxStr,
