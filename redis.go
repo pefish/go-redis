@@ -114,6 +114,15 @@ func (rc *RedisType) Exists(key string) (bool, error) {
 	return result == 1, nil
 }
 
+func (rc *RedisType) Keys(pattern string) ([]string, error) {
+	rc.logger.DebugF(`Redis keys. pattern: %s`, pattern)
+	results, err := rc.Db.Keys(context.Background(), pattern).Result()
+	if err != nil {
+		return nil, errors.Wrapf(err, "<pattern: %s>", pattern)
+	}
+	return results, nil
+}
+
 func (rc *RedisType) Publish(channel string, message string) (receivedSubscriberCount_ uint64, err_ error) {
 	rc.logger.DebugF(`Redis publish. channel: %s, message: %s`, channel, message)
 	result, err := rc.Db.Publish(context.Background(), channel, message).Result()
