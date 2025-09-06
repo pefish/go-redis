@@ -32,13 +32,14 @@ func (t *OrderSetType) Add(key string, member string, score float64) error {
 	return nil
 }
 
-// 移除有序集合中的一个或多个成员
-func (rc *OrderSetType) Remove(key string, member string) error {
+// 移除有序集合中的一个成员
+func (rc *OrderSetType) Remove(key string, member string) (bool, error) {
 	rc.logger.DebugF(`Redis ZRem. key: %s, member: %s`, key, member)
-	if err := rc.db.ZRem(context.Background(), key, member).Err(); err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+	result := rc.db.ZRem(context.Background(), key, member)
+	if err := result.Err(); err != nil {
+		return false, errors.Wrapf(err, "<key: %s>", key)
 	}
-	return nil
+	return result.Val() == 1, nil
 }
 
 // 移除有序集合中给定的分数区间的所有成员，math.MaxFloat64 表示 +inf，-1 表示 -inf
