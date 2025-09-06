@@ -121,6 +121,19 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 	return result, nil
 }
 
+// 返回有序集中，指定索引区间内的成员以及分数。其中成员的位置按分数值从大到小. start 0, end -1 可取出全部
+func (rc *OrderSetType) RevRangeWithScores(key string, start int64, stop int64) ([]redis.Z, error) {
+	rc.logger.DebugF(`Redis ZRevRangeWithScores. key: %s, start: %s, stop: %s`, key, start, stop)
+	result, err := rc.db.ZRevRangeWithScores(context.Background(), key, start, stop).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "<key: %s>", key)
+	}
+	return result, nil
+}
+
 // 通过分数返回有序集合指定区间内(左右都包含)的成员, 分数从低到高排序
 func (rc *OrderSetType) RangeByScore(key string, rangeBy RangeBy) ([]string, error) {
 	minStr := strconv.FormatFloat(rangeBy.Min, 'f', -1, 64)
