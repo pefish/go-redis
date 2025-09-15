@@ -124,7 +124,7 @@ func (rc *OrderSetType) RevRange(key string, start int64, stop int64) ([]string,
 
 // 返回有序集中，指定索引区间内的成员以及分数。其中成员的位置按分数值从大到小. start 0, end -1 可取出全部
 func (rc *OrderSetType) RevRangeWithScores(key string, start int64, stop int64) ([]redis.Z, error) {
-	rc.logger.DebugF(`Redis ZRevRangeWithScores. key: %s, start: %s, stop: %s`, key, start, stop)
+	rc.logger.DebugF(`Redis ZRevRangeWithScores. key: %s, start: %d, stop: %d`, key, start, stop)
 	result, err := rc.db.ZRevRangeWithScores(context.Background(), key, start, stop).Result()
 	if err != nil {
 		if err.Error() == `redis: nil` {
