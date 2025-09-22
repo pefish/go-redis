@@ -81,3 +81,16 @@ func (t *StringType) GetFloat64(key string) (float64, error) {
 	}
 	return r, nil
 }
+
+func (rc *StringType) IncrBy(key string, increment int64) (uint64, error) {
+	rc.logger.DebugF(`Redis IncrBy. key: %s, increment: %f`, key, increment)
+	result := rc.db.IncrBy(context.Background(), key, increment)
+	if result.Err() != nil {
+		return 0, errors.Wrapf(result.Err(), "<key: %s>", key)
+	}
+	val, err := result.Uint64()
+	if err != nil {
+		return 0, errors.Wrapf(result.Err(), "<key: %s>", key)
+	}
+	return val, nil
+}
