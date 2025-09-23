@@ -169,10 +169,12 @@ func (rc *HashType) Values(key string) ([]string, error) {
 	return result, nil
 }
 
-func (rc *HashType) IncrBy(key string, field string, increment int64) error {
+func (rc *HashType) IncrBy(key string, field string, increment int64) (int64, error) {
 	rc.logger.DebugF(`Redis HIncrBy. key: %s, field: %s, increment: %f`, key, field, increment)
-	if err := rc.db.HIncrBy(context.Background(), key, field, increment).Err(); err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+	result := rc.db.HIncrBy(context.Background(), key, field, increment)
+	if err := result.Err(); err != nil {
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
-	return nil
+
+	return result.Val(), nil
 }

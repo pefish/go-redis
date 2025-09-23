@@ -88,12 +88,15 @@ func (rc *OrderSetType) TotalCount(key string) (int64, error) {
 }
 
 // 有序集合中对指定成员的分数加上增量 increment
-func (rc *OrderSetType) IncrBy(key string, member string, increment float64) error {
+// 返回值：新分数值
+func (rc *OrderSetType) IncrBy(key string, member string, increment float64) (float64, error) {
 	rc.logger.DebugF(`Redis ZIncrBy. key: %s, member: %s, increment: %f`, key, member, increment)
-	if err := rc.db.ZIncrBy(context.Background(), key, increment, member).Err(); err != nil {
-		return errors.Wrapf(err, "<key: %s>", key)
+	result := rc.db.ZIncrBy(context.Background(), key, increment, member)
+	if err := result.Err(); err != nil {
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
-	return nil
+
+	return result.Val(), nil
 }
 
 // 返回有序集中，指定索引区间内的成员。其中成员的位置按分数值从小到大来排序. start 0, end -1 可取出全部
