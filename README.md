@@ -2,7 +2,7 @@
 
 ## Description
 
-redis tools
+redis client
 
 ## Software Architecture
 
