@@ -13,7 +13,7 @@ import (
 var RedisInstance *RedisType
 
 func init() {
-	RedisInstance = NewRedisInstance(&i_logger.DefaultLogger)
+	RedisInstance = NewRedisInstance(&i_logger.DefaultLogger, 60*time.Second)
 	RedisInstance.Connect(&Configuration{
 		Url:      `127.0.0.1`,
 		Password: "password",

@@ -21,16 +21,18 @@ type RedisType struct {
 	OrderSet *OrderSetType
 	Hash     *HashType
 
-	logger i_logger.ILogger
+	logger  i_logger.ILogger
+	timeout time.Duration
 }
 
 type StringOrBytes interface {
 	~string | ~[]byte
 }
 
-func NewRedisInstance(logger i_logger.ILogger) *RedisType {
+func NewRedisInstance(logger i_logger.ILogger, timeout time.Duration) *RedisType {
 	return &RedisType{
-		logger: logger,
+		logger:  logger,
+		timeout: timeout,
 	}
 }
 
@@ -66,7 +68,7 @@ func (t *RedisType) Connect(configuration *Configuration) error {
 		Addr:     configuration.Url,
 		Password: password,
 		DB:       int(database),
-	})
+	}).WithTimeout(t.timeout)
 	_, err := t.Db.Ping(context.Background()).Result()
 	if err != nil {
 		return errors.Wrap(err, "")
