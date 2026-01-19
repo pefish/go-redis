@@ -32,6 +32,14 @@ func (t *OrderSetType) Add(key string, member string, score float64) error {
 	return nil
 }
 
+func (t *OrderSetType) AddBatch(key string, members []redis.Z) error {
+	t.logger.DebugF(`Redis zadd. key: %s, members: ...`, key)
+	if err := t.db.ZAdd(context.Background(), key, members...).Err(); err != nil {
+		return errors.Wrapf(err, "<key: %s>", key)
+	}
+	return nil
+}
+
 // 移除有序集合中的一个成员
 func (rc *OrderSetType) Remove(key string, member string) (bool, error) {
 	rc.logger.DebugF(`Redis ZRem. key: %s, member: %s`, key, member)

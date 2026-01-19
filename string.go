@@ -25,7 +25,11 @@ func (t *StringType) Set(key string, value string, expiration time.Duration) err
 }
 
 func (t *StringType) SetUint64(key string, value uint64, expiration time.Duration) error {
-	return t.Set(key, strconv.FormatUint(value, 10), expiration)
+	t.logger.DebugF(`Redis set. key: %s, val: %s, expiration: %v`, key, value, expiration)
+	if err := t.db.Set(context.Background(), key, value, expiration).Err(); err != nil {
+		return errors.Wrapf(err, "<key: %s>", key)
+	}
+	return nil
 }
 
 // 只有在 key 不存在时设置 key 的值，设置成功返回 true。
@@ -53,18 +57,16 @@ func (t *StringType) Get(key string) (string, error) {
 }
 
 func (t *StringType) GetUint64(key string) (uint64, error) {
-	resultStr, err := t.Get(key)
+	t.logger.DebugF(`Redis get. key: %s`, key)
+	result, err := t.db.Get(context.Background(), key).Uint64()
 	if err != nil {
-		return 0, err
+		if err.Error() == `redis: nil` {
+			return 0, nil
+		}
+		return 0, errors.Wrapf(err, "<key: %s>", key)
 	}
-	if resultStr == "" {
-		return 0, nil
-	}
-	r, err := strconv.ParseUint(resultStr, 10, 64)
-	if err != nil {
-		return 0, errors.Wrapf(err, "<key: %s> string<%s> to uint64 failed.", key, resultStr)
-	}
-	return r, nil
+	t.logger.DebugF(`Redis get. result: %s`, result)
+	return result, nil
 }
 
 func (t *StringType) GetFloat64(key string) (float64, error) {

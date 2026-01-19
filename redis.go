@@ -29,7 +29,7 @@ type StringOrBytes interface {
 	~string | ~[]byte
 }
 
-func NewRedisInstance(logger i_logger.ILogger, timeout time.Duration) *RedisType {
+func New(logger i_logger.ILogger, timeout time.Duration) *RedisType {
 	return &RedisType{
 		logger:  logger,
 		timeout: timeout,

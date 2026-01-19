@@ -22,6 +22,14 @@ func (t *SetType) Add(key string, member string) error {
 	return nil
 }
 
+func (t *SetType) AddBatch(key string, members []any) error {
+	t.logger.DebugF(`Redis sadd. key: %s, members: ...`, key)
+	if err := t.db.SAdd(context.Background(), key, members...).Err(); err != nil {
+		return errors.Wrapf(err, "<key: %s>", key)
+	}
+	return nil
+}
+
 // 返回集合中的所有成员，key 不存在时返回 nil,nil
 func (rc *SetType) Members(key string) ([]string, error) {
 	rc.logger.DebugF(`Redis smembers. key: %s`, key)
