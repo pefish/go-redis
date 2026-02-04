@@ -38,6 +38,19 @@ func (t *HashType) Get(key, field string) (string, error) {
 	return result, nil
 }
 
+func (t *HashType) GetBatch(key string, fields []string) ([]any, error) {
+	t.logger.DebugF(`Redis hmget. key: %s, fields: ...`, key)
+	result, err := t.db.HMGet(context.Background(), key, fields...).Result()
+	if err != nil {
+		if err.Error() == `redis: nil` {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "<key: %s, fields: ...>", key)
+	}
+	t.logger.DebugF(`Redis hmget. result: %s`, result)
+	return result, nil
+}
+
 func (t *HashType) RandomGetFields(key string, count int) ([]string, error) {
 	t.logger.DebugF(`Redis HRandField. key: %s, count: %d`, key, count)
 	result, err := t.db.HRandField(context.Background(), key, count).Result()
@@ -110,19 +123,6 @@ func (t *HashType) SetBatch(key string, fieldValues map[string]any) error {
 	_, err := t.db.HSet(context.Background(), key, fieldValues).Result()
 	if err != nil {
 		return errors.Wrapf(err, "<key: %s>", key)
-	}
-	return nil
-}
-
-func (t *HashType) SetMulti(key string, datas map[string]string) error {
-	t.logger.DebugF(`Redis hmset. key: %s, datas: %#v`, key, datas)
-	datasInterface := make(map[string]any, 0)
-	for k, v := range datas {
-		datasInterface[k] = v
-	}
-	_, err := t.db.HMSet(context.Background(), key, datasInterface).Result()
-	if err != nil {
-		return errors.Wrapf(err, "<key: %s, datas: %#v>", key, datas)
 	}
 	return nil
 }
