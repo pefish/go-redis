@@ -154,6 +154,16 @@ func (t *HashType) Del(key, field string) (bool, error) {
 	return result.Val() == 1, nil
 }
 
+// 返回被成功删除的数量
+func (t *HashType) DelBatch(key string, fields []string) (int64, error) {
+	t.logger.DebugF(`Redis hdel. key: %s, fields length: %d`, key, len(fields))
+	result := t.db.HDel(context.Background(), key, fields...)
+	if result.Err() != nil {
+		return 0, errors.Wrapf(result.Err(), "<key: %s, fields length: %d>", key, len(fields))
+	}
+	return result.Val(), nil
+}
+
 func (t *HashType) Len(key string) (int64, error) {
 	t.logger.DebugF(`Redis hlen. key: %s`, key)
 	result, err := t.db.HLen(context.Background(), key).Result()
